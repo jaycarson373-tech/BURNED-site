@@ -1,4 +1,4 @@
-name: Verify BURNED site
+name: Verify TOPLAST site
 on: [push, pull_request]
 jobs:
   build:
