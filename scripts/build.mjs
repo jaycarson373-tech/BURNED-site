@@ -18,7 +18,10 @@ for (const required of [
   'id="account"',
   'id="how-it-works"',
   'id="rules"',
-  'id="airdrop-history"'
+  'id="airdrop-history"',
+  'id="market-topblast-price"',
+  'id="market-next-epoch"',
+  'id="leaderboard-title">TOP BLAST LEADERBOARD'
 ]) {
   if (!html.includes(required)) throw new Error(`Missing site content: ${required}`);
 }

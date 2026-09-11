@@ -101,6 +101,22 @@
       </section>
     </section>
 
+    <section class="market-strip" aria-label="Live TOP BLAST market and epoch data">
+      <div class="wrap">
+        <div class="market-strip-status"><span class="status-light" aria-hidden="true"></span><span id="market-data-status">LOADING VERIFIED MARKET DATA</span></div>
+        <dl class="market-strip-grid">
+          <div><dt>TOPBLAST PRICE</dt><dd id="market-topblast-price">—</dd></div>
+          <div><dt>TOPBLAST 24H</dt><dd id="market-topblast-move">—</dd></div>
+          <div><dt>EMBER PRICE</dt><dd id="market-ember-price">—</dd></div>
+          <div><dt>EMBER 24H</dt><dd id="market-ember-move">—</dd></div>
+          <div><dt>TOTAL EPOCHS</dt><dd id="market-epoch-count">—</dd></div>
+          <div><dt>$EMBER AIRDROPPED</dt><dd id="market-airdrop-total">—</dd></div>
+          <div><dt>NEXT SNAPSHOT</dt><dd id="market-next-epoch">—</dd></div>
+        </dl>
+        <p>USD prices and 24-hour movement from Jupiter. Blast status uses the finalized TOP BLAST index.</p>
+      </div>
+    </section>
+
     <section class="watch-section" id="watch" aria-labelledby="watch-title">
       <div class="wrap">
         <div class="watch-heading">
@@ -114,7 +130,8 @@
         </dl>
         <div class="watch-grid">
           <section class="leaderboard-panel" aria-labelledby="leaderboard-title">
-            <div class="panel-head"><h3 id="leaderboard-title">IN THE BLAST ZONE</h3><span id="leaderboard-status">AWAITING INDEX</span></div>
+            <div class="panel-head"><h3 id="leaderboard-title">TOP BLAST LEADERBOARD</h3><span id="leaderboard-status">AWAITING INDEX</span></div>
+            <div class="leaderboard-columns" aria-hidden="true"><span>RANK</span><span>WALLET / ENTRY</span><span>BLAST DEPTH</span></div>
             <ol class="leaderboard-list" id="leaderboard-list"><li class="empty-row"><span>—</span><p>No indexed positions yet.</p><strong>—</strong></li></ol>
           </section>
           <section class="airdrop-panel" aria-labelledby="feed-title">

@@ -401,6 +401,19 @@ h1 span, h2 span {
 .zone-state p { margin: 0; color: #aaa49a; font-size: .76rem; text-align: right; }
 .visual-caption { margin: 0; padding: .75rem 1rem; color: #79746d; font-size: .67rem; line-height: 1.5; }
 
+.market-strip { border-block: 1px solid var(--line); background: rgba(255,255,255,.76); }
+.market-strip > .wrap { padding-block: 1.05rem .85rem; }
+.market-strip-status { display: flex; align-items: center; gap: .55rem; margin-bottom: .72rem; color: #858078; font-size: .54rem; font-weight: 900; letter-spacing: .09em; }
+.market-strip-status .status-light { width: 6px; height: 6px; }
+.market-strip-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin: 0; border: 1px solid var(--line); background: var(--white); }
+.market-strip-grid > div { min-width: 0; min-height: 75px; display: flex; flex-direction: column; justify-content: space-between; padding: .75rem .8rem; }
+.market-strip-grid > div + div { border-left: 1px solid var(--line); }
+.market-strip-grid dt { color: #8a857d; font-size: .51rem; font-weight: 900; letter-spacing: .08em; white-space: nowrap; }
+.market-strip-grid dd { overflow: hidden; margin: .7rem 0 0; color: var(--ink); font-family: var(--display); font-size: .82rem; font-weight: 650; letter-spacing: -.02em; text-overflow: ellipsis; white-space: nowrap; }
+.market-strip-grid dd[data-state="positive"] { color: #168a51; }
+.market-strip-grid dd[data-state="negative"] { color: var(--hot); }
+.market-strip > .wrap > p { margin: .55rem 0 0; color: #928d85; font-size: .55rem; line-height: 1.5; }
+
 .watch-section {
   color: #f7f3ec;
   padding-block: 7rem;
@@ -425,6 +438,8 @@ h2 { margin: 1rem 0 0; font-size: clamp(3rem, 5vw, 5.2rem); font-weight: 650; li
 .panel-head h3 { margin: 0; font-size: .7rem; letter-spacing: .085em; }
 .panel-head span { color: #858078; font-size: .54rem; font-weight: 900; letter-spacing: .085em; }
 .leaderboard-list { min-height: 315px; margin: 0; padding: 0; list-style: none; counter-reset: blast-rank; }
+.leaderboard-columns { min-height: 31px; display: grid; grid-template-columns: 38px 1fr auto; gap: .8rem; align-items: center; padding: 0 1rem; color: #6f6a63; border-bottom: 1px solid var(--night-line); font-size: .48rem; font-weight: 900; letter-spacing: .09em; }
+.leaderboard-columns span:last-child { text-align: right; }
 .leaderboard-list li { min-height: 63px; display: grid; grid-template-columns: 38px 1fr auto; gap: .8rem; align-items: center; padding: .75rem 1rem; border-bottom: 1px solid var(--night-line); counter-increment: blast-rank; }
 .leaderboard-list li:last-child { border-bottom: 0; }
 .leaderboard-list li > span:first-child::before { content: counter(blast-rank, decimal-leading-zero); }
@@ -553,6 +568,10 @@ h2 { margin: 1rem 0 0; font-size: clamp(3rem, 5vw, 5.2rem); font-weight: 650; li
   .account-section { grid-template-columns: 1fr; gap: 2.5rem; }
   .account-intro { position: static; }
   .rules-section { grid-template-columns: 1fr; gap: 2.5rem; }
+  .market-strip-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .market-strip-grid > div + div { border-left: 0; }
+  .market-strip-grid > div:not(:nth-child(4n + 1)) { border-left: 1px solid var(--line); }
+  .market-strip-grid > div:nth-child(n + 5) { border-top: 1px solid var(--line); }
 }
 
 @media (max-width: 760px) {
@@ -575,6 +594,10 @@ h2 { margin: 1rem 0 0; font-size: clamp(3rem, 5vw, 5.2rem); font-weight: 650; li
   .hero-facts div { display: flex; align-items: center; justify-content: space-between; padding: .72rem 0; }
   .hero-facts div + div { padding-left: 0; border-top: 1px solid var(--line); border-left: 0; }
   .hero-facts dd { margin: 0; }
+  .market-strip-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .market-strip-grid > div:not(:nth-child(4n + 1)) { border-left: 0; }
+  .market-strip-grid > div:nth-child(even) { border-left: 1px solid var(--line); }
+  .market-strip-grid > div:nth-child(n + 3) { border-top: 1px solid var(--line); }
   .reward-visual { box-shadow: 8px 8px 0 #eeeae1; }
   .chart-shell { min-height: 300px; }
   .chart-logo { width: 52px; height: 52px; }

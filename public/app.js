@@ -6,6 +6,9 @@
   const CHART_WIDTH = 720;
   const CHART_HEIGHT = 420;
   const EPOCH_SECONDS = 900;
+  const TOPBLAST_MINT = "FsiDU4zcDKvuZRk3Ft4RHnRczKh4TdSi5GpdynkCuCTS";
+  const EMBER_MINT = "5dvXTZ5qwgafnHtwu3Ls3QrWx1U4LQsFeCuJgkk4QEC6";
+  const JUPITER_TOKEN_API = "https://lite-api.jup.ag/tokens/v2/search";
   const config = window.__TOPBLAST_PUBLIC_CONFIG__ || window.__TOPLAST_PUBLIC_CONFIG__ || {};
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const elements = Object.fromEntries([
@@ -14,7 +17,9 @@
     "wallet-form", "wallet-address", "wallet-message", "data-status", "indexed-time", "position-grid", "tracked-balance",
     "tracked-entry", "current-price", "position-change", "position-status", "blast-depth", "next-epoch", "total-airdropped",
     "account-note", "copy-mint", "zone-wallet-count", "top-blast-count", "global-airdrop-total", "leaderboard-status",
-    "leaderboard-list", "feed-status", "airdrop-feed", "history-status", "airdrop-history"
+    "leaderboard-list", "feed-status", "airdrop-feed", "history-status", "airdrop-history", "market-data-status",
+    "market-topblast-price", "market-topblast-move", "market-ember-price", "market-ember-move", "market-epoch-count",
+    "market-airdrop-total", "market-next-epoch"
   ].map(id => [id, document.getElementById(id)]));
 
   let protocol = null;
@@ -236,6 +241,26 @@
     }
   }
 
+  async function readCount(table, query) {
+    if (!isPublicIndexConfigured()) throw new Error("Public index is not configured");
+    const url = new URL(`/rest/v1/${table}`, config.supabaseUrl);
+    for (const [key, value] of Object.entries(query)) url.searchParams.set(key, value);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 9000);
+    try {
+      const response = await fetch(url, {
+        headers: { apikey: config.supabaseKey, accept: "application/json", prefer: "count=exact", range: "0-0" },
+        signal: controller.signal
+      });
+      if (!response.ok) throw new Error(`Public index returned ${response.status}`);
+      const match = response.headers.get("content-range")?.match(/\/(\d+)$/);
+      if (!match) throw new Error("Public index omitted an exact count");
+      return match[1];
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
   function formatTimestamp(value) {
     const date = new Date(value);
     if (!Number.isFinite(date.getTime())) return "INDEX TIME UNAVAILABLE";
@@ -289,6 +314,50 @@
     return `${sign}${(Number(basisPoints) / 100).toFixed(2)}%`;
   }
 
+  function formatUsdPrice(value) {
+    if (!Number.isFinite(value) || value <= 0) return "—";
+    const maximumFractionDigits = value >= 1 ? 4 : value >= .01 ? 5 : value >= .0001 ? 7 : 10;
+    return `$${value.toLocaleString("en-US", { maximumFractionDigits, minimumFractionDigits: Math.min(2, maximumFractionDigits) })}`;
+  }
+
+  function renderMarketMove(element, value) {
+    if (!Number.isFinite(value)) {
+      element.textContent = "—";
+      delete element.dataset.state;
+      return;
+    }
+    element.textContent = `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
+    element.dataset.state = value < 0 ? "negative" : value > 0 ? "positive" : "flat";
+  }
+
+  async function loadMarketData() {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    try {
+      const token = async mint => {
+        const url = new URL(JUPITER_TOKEN_API);
+        url.searchParams.set("query", mint);
+        const response = await fetch(url, { signal: controller.signal });
+        if (!response.ok) throw new Error(`Jupiter returned ${response.status}`);
+        const rows = await response.json();
+        const row = Array.isArray(rows) ? rows.find(item => item?.id === mint) : null;
+        if (!row) throw new Error("Jupiter token data is unavailable");
+        return row;
+      };
+      const [topblast, ember] = await Promise.all([token(TOPBLAST_MINT), token(EMBER_MINT)]);
+      elements["market-topblast-price"].textContent = formatUsdPrice(Number(topblast.usdPrice));
+      elements["market-ember-price"].textContent = formatUsdPrice(Number(ember.usdPrice));
+      renderMarketMove(elements["market-topblast-move"], Number(topblast.stats24h?.priceChange));
+      renderMarketMove(elements["market-ember-move"], Number(ember.stats24h?.priceChange));
+      elements["market-data-status"].textContent = `MARKET LIVE · ${new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(new Date()).toUpperCase()}`;
+    } catch {
+      for (const id of ["market-topblast-price", "market-topblast-move", "market-ember-price", "market-ember-move"]) elements[id].textContent = "—";
+      elements["market-data-status"].textContent = "MARKET DATA UNAVAILABLE";
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
   function validSolanaAddress(value) {
     if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value)) return false;
     let number = 0n;
@@ -308,6 +377,7 @@
   }
 
   function updateEpochCountdown() {
+    elements["market-next-epoch"].textContent = epochCountdown();
     if (selectedWalletLoaded) elements["next-epoch"].textContent = epochCountdown();
   }
 
@@ -448,6 +518,9 @@
     elements["global-airdrop-total"].textContent = protocol.total_airdropped_ember_raw === null
       ? "—"
       : `${formatDecimal(protocol.total_airdropped_ember_raw, protocol.ember_decimals, 3)} $EMBER`;
+    elements["market-airdrop-total"].textContent = protocol.total_airdropped_ember_raw === null
+      ? "—"
+      : `${formatDecimal(protocol.total_airdropped_ember_raw, protocol.ember_decimals, 3)} $EMBER`;
 
     elements["leaderboard-list"].replaceChildren();
     if (delayed || !leaderboard.length) {
@@ -518,7 +591,7 @@
     protocolLoading = true;
     try {
       const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "toplast";
-      const [statusRows, priceRows, leaderboardRows, buyRows, distributionRows] = await Promise.all([
+      const [statusRows, priceRows, leaderboardRows, buyRows, distributionRows, epochCount] = await Promise.all([
         readRows("burned_worker_status", {
           select: "project_id,current_epoch,current_price_raw,current_price_time,burned_decimals,ember_decimals,indexed_through_slot,indexed_through_time,wallets_in_zone,top_blasts_indexed,total_airdropped_ember_raw,updated_at,mode",
           project_id: `eq.${projectId}`,
@@ -549,7 +622,8 @@
           project_id: `eq.${projectId}`,
           order: "epoch_id.desc",
           limit: "12"
-        })
+        }),
+        readCount("burned_epochs", { select: "epoch_id", project_id: `eq.${projectId}` })
       ]);
       if (!statusRows[0]) {
         elements["data-status"].textContent = "AWAITING INDEX";
@@ -559,6 +633,7 @@
       protocol.current_epoch = protocol.current_epoch === null ? null : Number(protocol.current_epoch);
       protocol.burned_decimals = protocol.burned_decimals === null ? null : Number(protocol.burned_decimals);
       protocol.ember_decimals = protocol.ember_decimals === null ? null : Number(protocol.ember_decimals);
+      elements["market-epoch-count"].textContent = formatInteger(epochCount);
       epochPrices = priceRows.reverse();
       recentBuys = buyRows;
       const newBuys = initialBuyIndexLoaded ? buyRows.filter(row => row.event_id && !knownBuyIds.has(row.event_id)) : [];
@@ -633,7 +708,9 @@
   });
 
   startPreview();
+  loadMarketData();
   loadProtocol();
   window.setInterval(() => { if (!document.hidden) loadProtocol(); }, 15000);
+  window.setInterval(() => { if (!document.hidden) loadMarketData(); }, 30000);
   window.setInterval(updateEpochCountdown, 1000);
 })();
