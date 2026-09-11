@@ -101,9 +101,9 @@
     return amount && paid ? paid * SCALE / amount : null;
   }
 
-  function renderBuyMarkers(yFor, xFor) {
+  function renderBuyMarkers(yFor, xFor, buys) {
     elements["buy-markers"].replaceChildren();
-    for (const buy of [...recentBuys].reverse()) {
+    for (const buy of [...buys].reverse()) {
       const price = executionPrice(buy);
       if (!price) continue;
       const x = xFor(Date.parse(buy.occurred_at));
@@ -134,7 +134,8 @@
     const series = policyPriceSamples;
 
     const values = series.map(point => point.value);
-    const buyPrices = recentBuys.map(executionPrice).filter(Boolean);
+    const visibleBuys = window.TopBlastIndex.buysInWindow(recentBuys, series[0].time, series.at(-1).time);
+    const buyPrices = visibleBuys.map(executionPrice).filter(Boolean);
     const entry = asRaw(entryRaw, true);
     const all = [...values, ...buyPrices, ...(entry ? [entry] : [])];
     let minimum = all.reduce((a, b) => a < b ? a : b);
@@ -160,7 +161,7 @@
       elements[id].setAttribute("cx", String(current[0]));
       elements[id].setAttribute("cy", String(current[1]));
     }
-    renderBuyMarkers(yFor, xFor);
+    renderBuyMarkers(yFor, xFor, visibleBuys);
     elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
     elements["chart-mode"].textContent = "LIVE BLAST ZONE";
     elements["chart-price"].textContent = currentPrice ? `${formatPrice(currentPrice)} $EMBER` : "—";

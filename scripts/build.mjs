@@ -1,5 +1,6 @@
 import { cp, link, mkdir, rm, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { validatePublicSupabaseKey } from "./public-key.mjs";
 
 const html = await readFile("public/index.html", "utf8");
 for (const required of [
@@ -68,7 +69,7 @@ if (supabaseUrl) {
   if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password || endpoint.search || endpoint.hash) {
     throw new Error("PUBLIC_SUPABASE_URL must be an HTTPS project URL");
   }
-  if (!/^(?:sb_publishable_|eyJ)[^\s]{18,}$/.test(supabaseKey)) throw new Error("PUBLIC_SUPABASE_PUBLISHABLE_KEY is invalid");
+  validatePublicSupabaseKey(supabaseKey);
 }
 const projectId = (process.env.TOPBLAST_PROJECT_ID ?? process.env.TOPLAST_PROJECT_ID ?? process.env.BURNED_PROJECT_ID ?? "toplast").trim();
 if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(projectId)) throw new Error("TOPBLAST_PROJECT_ID must be a short lowercase slug");

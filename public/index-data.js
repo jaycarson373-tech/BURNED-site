@@ -1,6 +1,12 @@
 // Preserve PostgREST numeric(78,0) atomic values before JSON number conversion.
 // String tokens are passed through unchanged; large integer tokens become strings.
 window.TopBlastIndex = Object.freeze({
+  buysInWindow(buys, start, end) {
+    return buys.filter(buy => {
+      const time = Date.parse(buy.occurred_at || '');
+      return Number.isFinite(time) && time >= start && time <= end;
+    });
+  },
   parse(text) {
     return JSON.parse(text.replace(/"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g, token => {
       if (token[0] === '"' || !/^-?\d{16,}$/.test(token)) return token;
