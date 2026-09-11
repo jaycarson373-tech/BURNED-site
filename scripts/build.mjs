@@ -3,9 +3,9 @@ import { join } from "node:path";
 
 const html = await readFile("public/index.html", "utf8");
 for (const required of [
-  "<title>TOP BLAST",
+  "<title>Topblast",
   "GET PAID TO",
-  "TOPBLAST.",
+  "Topblast.",
   "$TOPBLAST / $EMBER",
   "Blast Zone",
   "weighted average entry",
@@ -21,7 +21,7 @@ for (const required of [
   'id="airdrop-history"',
   'id="market-topblast-price"',
   'id="market-next-epoch"',
-  'id="leaderboard-title">TOP BLAST LEADERBOARD'
+  'id="leaderboard-title">Topblast LEADERBOARD'
 ]) {
   if (!html.includes(required)) throw new Error(`Missing site content: ${required}`);
 }
@@ -73,4 +73,4 @@ if (supabaseUrl) {
 const projectId = (process.env.TOPBLAST_PROJECT_ID ?? process.env.TOPLAST_PROJECT_ID ?? process.env.BURNED_PROJECT_ID ?? "toplast").trim();
 if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(projectId)) throw new Error("TOPBLAST_PROJECT_ID must be a short lowercase slug");
 await writeFile(join("dist", "runtime-config.js"), `window.__TOPBLAST_PUBLIC_CONFIG__ = Object.freeze(${JSON.stringify({ supabaseUrl, supabaseKey, projectId })});\n`);
-console.log("TOP BLAST production build complete. Branding, metadata, assets, links, responsive styles and public configuration validated.");
+console.log("Topblast production build complete. Branding, metadata, assets, links, responsive styles and public configuration validated.");

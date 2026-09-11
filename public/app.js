@@ -68,11 +68,11 @@
     elements["price-line"].setAttribute("d", "");
     elements["price-area"].setAttribute("d", "");
     elements["chart-shell"].dataset.state = "market";
-    elements["blast-chart"].setAttribute("aria-label", "TOPBLAST market data loading");
+    elements["blast-chart"].setAttribute("aria-label", "Topblast market data loading");
     elements["chart-mode"].textContent = "LOADING TEST TOKEN";
     elements["zone-status"].textContent = "DATA PENDING";
     delete elements["zone-status"].dataset.state;
-    elements["zone-copy"].textContent = "Loading the real TOPBLAST test-token price.";
+    elements["zone-copy"].textContent = "Loading the real Topblast test-token price.";
     elements["chart-caption"].textContent = "TEST MINT · FsiD...uCTS · Waiting for verified market data.";
     elements["chart-price"].textContent = "—";
   }
@@ -100,7 +100,7 @@
       core.classList.add("blast-marker-core");
       core.setAttribute("r", "4.5");
       const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-      title.textContent = `TOP BLAST by ${shortWallet(buy.wallet)}`;
+      title.textContent = `Topblast by ${shortWallet(buy.wallet)}`;
       marker.append(title, ring, core);
       elements["buy-markers"].append(marker);
     }
@@ -156,7 +156,7 @@
       elements["zone-status"].textContent = "MARKET LIVE";
       elements["zone-copy"].textContent = "Search a wallet to place its tracked entry.";
       elements["chart-caption"].textContent = "Reward-policy price in EMBER. Markers are verified buys. Final eligibility is set at the epoch cutoff.";
-      elements["blast-chart"].setAttribute("aria-label", "Finalized TOPBLAST price history with verified buy markers");
+      elements["blast-chart"].setAttribute("aria-label", "Finalized Topblast price history with verified buy markers");
       return true;
     }
 
@@ -177,7 +177,7 @@
       elements["chart-shell"].dataset.state = "excluded";
     }
     elements["chart-caption"].textContent = "Reward-policy price: higher of epoch TWAP and spot. Final eligibility is set at the epoch cutoff.";
-    elements["blast-chart"].setAttribute("aria-label", "Finalized indexed TOPBLAST price history and buys compared with the searched wallet's tracked entry");
+    elements["blast-chart"].setAttribute("aria-label", "Finalized indexed Topblast price history and buys compared with the searched wallet's tracked entry");
     return true;
   }
 
@@ -220,9 +220,9 @@
     elements["zone-status"].textContent = "MARKET LIVE";
     delete elements["zone-status"].dataset.state;
     elements["zone-copy"].textContent = "Real test-token price. Search a wallet for its Blast Zone status.";
-    elements["chart-caption"].textContent = "TEST MINT · FsiD...uCTS · Rolling price from Jupiter. Eligibility uses the finalized TOP BLAST index.";
+    elements["chart-caption"].textContent = "TEST MINT · FsiD...uCTS · Rolling price from Jupiter. Eligibility uses the finalized Topblast index.";
     elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
-    elements["blast-chart"].setAttribute("aria-label", "Live rolling TOPBLAST test-token market price from Jupiter");
+    elements["blast-chart"].setAttribute("aria-label", "Live rolling Topblast test-token market price from Jupiter");
     return true;
   }
 
@@ -538,7 +538,7 @@
         clearPosition();
         selectedWalletLoaded = true;
         selectedEntryRaw = null;
-        if (!silent) setMessage("No verified TOPBLAST entry is indexed for this wallet.");
+        if (!silent) setMessage("No verified Topblast entry is indexed for this wallet.");
         elements["position-status"].textContent = "NO ENTRY";
         elements["next-epoch"].textContent = epochCountdown();
         renderIndexedChart();
@@ -685,7 +685,7 @@
       if (!renderIndexedChart(selectedEntryRaw) && !renderMarketChart()) showPendingMarket();
       if (newBuys.length) showTopBlast(newBuys[0]);
       if (selectedWallet) await refreshSelectedWallet(true);
-      else setMessage("Enter a wallet to load its verified TOPBLAST position.");
+      else setMessage("Enter a wallet to load its verified Topblast position.");
       updateEpochCountdown();
     } catch {
       protocol = null;
