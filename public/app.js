@@ -100,11 +100,11 @@
     elements["price-area"].setAttribute("d", "");
     elements["chart-shell"].dataset.state = "market";
     elements["blast-chart"].setAttribute("aria-label", "TOPBLAST market data loading");
-    elements["chart-mode"].textContent = "LOADING TOPBLAST MARKET";
+    elements["chart-mode"].textContent = "LOADING TEST TOKEN";
     elements["zone-status"].textContent = "DATA PENDING";
     delete elements["zone-status"].dataset.state;
     elements["zone-copy"].textContent = "Loading the real TOPBLAST test-token price.";
-    elements["chart-caption"].textContent = "No sample prices. Waiting for verified market data.";
+    elements["chart-caption"].textContent = "TEST MINT · FsiD...uCTS · Waiting for verified market data.";
     elements["chart-price"].textContent = "—";
   }
 
@@ -245,12 +245,12 @@
     document.querySelector(".entry-label").hidden = true;
     document.querySelector(".zone-label").hidden = true;
     elements["chart-shell"].dataset.state = "market";
-    elements["chart-mode"].textContent = "LIVE TOPBLAST MARKET";
+    elements["chart-mode"].textContent = "LIVE TEST TOKEN";
     elements["chart-price"].textContent = formatUsdPrice(latest.value);
     elements["zone-status"].textContent = "MARKET LIVE";
     delete elements["zone-status"].dataset.state;
     elements["zone-copy"].textContent = "Real test-token price. Search a wallet for its Blast Zone status.";
-    elements["chart-caption"].textContent = "Rolling TOPBLAST price from Jupiter. Eligibility uses the finalized TOP BLAST index.";
+    elements["chart-caption"].textContent = "TEST MINT · FsiD...uCTS · Rolling price from Jupiter. Eligibility uses the finalized TOP BLAST index.";
     elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
     elements["blast-chart"].setAttribute("aria-label", "Live rolling TOPBLAST test-token market price from Jupiter");
     showingFinalizedData = true;
