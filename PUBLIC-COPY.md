@@ -2,13 +2,13 @@
 
 ## X bio
 
-Bought the top? Get blasted.  
+Get paid to TOPBLAST.\
 Below entry. Earn $EMBER.  
 $TOPBLAST × $EMBER on Meteora.
 
 ## Project description
 
-Bought the top? Get blasted. Buy $TOPBLAST with $EMBER to establish your entry. Fall below it and you enter the Blast Zone, where eligible positions share fee-funded $EMBER airdrops approximately every 15 minutes. Verified buys count. Selling or sending excludes that wallet for the epoch.
+Get paid to TOPBLAST. Buy $TOPBLAST with $EMBER to establish your entry. Fall below it and you enter the Blast Zone, where eligible positions share fee-funded $EMBER airdrops approximately every 15 minutes. Verified buys count. Selling or sending excludes that wallet for the epoch.
 
 ## Live thesis
 
@@ -40,7 +40,6 @@ Watch the price.
 Watch wallets cross the line.  
 Watch the top get blasted.
 
-Bought the top?  
-Get blasted.
+Get paid to TOPBLAST.
 
 topblast.xyz

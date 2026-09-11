@@ -4,8 +4,8 @@ import { join } from "node:path";
 const html = await readFile("public/index.html", "utf8");
 for (const required of [
   "<title>TOP BLAST",
-  "BOUGHT THE TOP?",
-  "GET BLASTED.",
+  "GET PAID TO",
+  "TOPBLAST.",
   "$TOPBLAST / $EMBER",
   "Blast Zone",
   "weighted average entry",
