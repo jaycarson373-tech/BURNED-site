@@ -25,6 +25,7 @@
   let protocol = null;
   let epochPrices = [];
   let recentBuys = [];
+  let marketPriceSamples = [];
   let selectedEntryRaw = null;
   let selectedWallet = null;
   let selectedWalletLoaded = false;
@@ -88,26 +89,23 @@
   }
 
   function startPreview() {
-    showingFinalizedData = false;
-    elements["entry-line"].setAttribute("y1", String(ENTRY_Y));
-    elements["entry-line"].setAttribute("y2", String(ENTRY_Y));
-    document.querySelector(".blast-field").setAttribute("y", String(ENTRY_Y));
-    document.querySelector(".blast-field").setAttribute("height", String(CHART_HEIGHT - ENTRY_Y));
-    document.querySelector(".entry-label").style.top = "calc(45.24% - 1.5rem)";
-    document.querySelector(".entry-label").hidden = false;
-    document.querySelector(".zone-label").hidden = false;
-    elements["entry-line"].hidden = false;
-    document.querySelector(".blast-field").hidden = false;
+    showingFinalizedData = true;
+    window.cancelAnimationFrame(previewFrame);
+    elements["entry-line"].hidden = true;
+    document.querySelector(".blast-field").hidden = true;
+    document.querySelector(".entry-label").hidden = true;
+    document.querySelector(".zone-label").hidden = true;
     elements["buy-markers"].replaceChildren();
-    elements["blast-chart"].setAttribute("aria-label", "Illustration of price moving above and below a tracked entry line");
-    elements["chart-mode"].textContent = "MECHANIC PREVIEW";
-    elements["chart-caption"].textContent = "Illustrative movement. No live price is shown.";
+    elements["price-line"].setAttribute("d", "");
+    elements["price-area"].setAttribute("d", "");
+    elements["chart-shell"].dataset.state = "market";
+    elements["blast-chart"].setAttribute("aria-label", "TOPBLAST market data loading");
+    elements["chart-mode"].textContent = "LOADING TOPBLAST MARKET";
+    elements["zone-status"].textContent = "DATA PENDING";
+    delete elements["zone-status"].dataset.state;
+    elements["zone-copy"].textContent = "Loading the real TOPBLAST test-token price.";
+    elements["chart-caption"].textContent = "No sample prices. Waiting for verified market data.";
     elements["chart-price"].textContent = "—";
-    paintPreview(reducedMotion ? 4600 : performance.now());
-    if (!reducedMotion) {
-      window.cancelAnimationFrame(previewFrame);
-      previewFrame = window.requestAnimationFrame(previewLoop);
-    }
   }
 
   function executionPrice(buy) {
@@ -209,6 +207,54 @@
     setChartState(values.at(-1) < entry, current[1]);
     elements["chart-caption"].textContent = "Finalized prices and verified buys compared with this wallet's tracked entry.";
     elements["blast-chart"].setAttribute("aria-label", "Finalized indexed TOPBLAST price history and buys compared with the searched wallet's tracked entry");
+    return true;
+  }
+
+  function renderMarketChart() {
+    if (!marketPriceSamples.length) return false;
+    const latest = marketPriceSamples.at(-1);
+    const series = marketPriceSamples.length === 1
+      ? [{ value: latest.value, time: latest.time - 60_000 }, latest]
+      : marketPriceSamples;
+    let minimum = Math.min(...series.map(point => point.value));
+    let maximum = Math.max(...series.map(point => point.value));
+    const basePadding = Math.max(Math.abs(latest.value) * .006, Number.EPSILON);
+    if (minimum === maximum) { minimum -= basePadding; maximum += basePadding; }
+    else {
+      const padding = (maximum - minimum) * .14;
+      minimum -= padding;
+      maximum += padding;
+    }
+    const spread = maximum - minimum;
+    const firstTime = series[0].time;
+    const lastTime = series.at(-1).time;
+    const xFor = time => 12 + (time - firstTime) / Math.max(1, lastTime - firstTime) * (CHART_WIDTH - 24);
+    const yFor = value => 28 + (maximum - value) / spread * 354;
+    const points = series.map(point => [xFor(point.time), yFor(point.value)]);
+    const line = pathFrom(points);
+    const current = points.at(-1);
+    elements["price-line"].setAttribute("d", line);
+    elements["price-area"].setAttribute("d", `${line} L${CHART_WIDTH} ${CHART_HEIGHT} L0 ${CHART_HEIGHT} Z`);
+    for (const id of ["price-point", "price-point-halo"]) {
+      elements[id].setAttribute("cx", String(current[0]));
+      elements[id].setAttribute("cy", String(current[1]));
+    }
+    elements["buy-markers"].replaceChildren();
+    elements["entry-line"].hidden = true;
+    document.querySelector(".blast-field").hidden = true;
+    document.querySelector(".entry-label").hidden = true;
+    document.querySelector(".zone-label").hidden = true;
+    elements["chart-shell"].dataset.state = "market";
+    elements["chart-mode"].textContent = "LIVE TOPBLAST MARKET";
+    elements["chart-price"].textContent = formatUsdPrice(latest.value);
+    elements["zone-status"].textContent = "MARKET LIVE";
+    delete elements["zone-status"].dataset.state;
+    elements["zone-copy"].textContent = "Real test-token price. Search a wallet for its Blast Zone status.";
+    elements["chart-caption"].textContent = "Rolling TOPBLAST price from Jupiter. Eligibility uses the finalized TOP BLAST index.";
+    elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
+    elements["blast-chart"].setAttribute("aria-label", "Live rolling TOPBLAST test-token market price from Jupiter");
+    showingFinalizedData = true;
+    window.cancelAnimationFrame(previewFrame);
     return true;
   }
 
@@ -345,11 +391,19 @@
         return row;
       };
       const [topblast, ember] = await Promise.all([token(TOPBLAST_MINT), token(EMBER_MINT)]);
-      elements["market-topblast-price"].textContent = formatUsdPrice(Number(topblast.usdPrice));
+      const topblastPrice = Number(topblast.usdPrice);
+      elements["market-topblast-price"].textContent = formatUsdPrice(topblastPrice);
       elements["market-ember-price"].textContent = formatUsdPrice(Number(ember.usdPrice));
       renderMarketMove(elements["market-topblast-move"], Number(topblast.stats24h?.priceChange));
       renderMarketMove(elements["market-ember-move"], Number(ember.stats24h?.priceChange));
       elements["market-data-status"].textContent = `MARKET LIVE · ${new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(new Date()).toUpperCase()}`;
+      if (Number.isFinite(topblastPrice) && topblastPrice > 0) {
+        const now = Date.now();
+        if (!marketPriceSamples.length || now - marketPriceSamples.at(-1).time >= 5_000) {
+          marketPriceSamples = [...marketPriceSamples, { value: topblastPrice, time: now }].slice(-120);
+        }
+        if (!protocol?.current_price_raw || !renderIndexedChart(selectedEntryRaw)) renderMarketChart();
+      }
     } catch {
       for (const id of ["market-topblast-price", "market-topblast-move", "market-ember-price", "market-ember-move"]) elements[id].textContent = "—";
       elements["market-data-status"].textContent = "MARKET DATA UNAVAILABLE";
@@ -647,7 +701,7 @@
       elements["data-status"].textContent = delayed ? "INDEX DELAYED" : "FINALIZED INDEX READY";
       elements["indexed-time"].textContent = formatTimestamp(protocol.indexed_through_time || protocol.updated_at);
       renderWatch(leaderboardRows, buyRows, distributionRows, delayed);
-      if (delayed) startPreview();
+      if (delayed && !renderMarketChart()) startPreview();
       else if (selectedEntryRaw) renderIndexedChart(selectedEntryRaw);
       else renderIndexedChart();
       if (newBuys.length) showTopBlast(newBuys[0]);
@@ -670,7 +724,7 @@
     selectedWallet = null;
     selectedEntryRaw = null;
     clearPosition();
-    startPreview();
+    if (!renderMarketChart()) startPreview();
     if (!validSolanaAddress(wallet)) {
       setMessage("Enter a valid Solana wallet address.", "error");
       elements["wallet-address"].focus();
