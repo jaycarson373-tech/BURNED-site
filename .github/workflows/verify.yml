@@ -1,4 +1,4 @@
-name: Verify TOPLAST site
+name: Verify TOP BLAST site
 on: [push, pull_request]
 jobs:
   build:
