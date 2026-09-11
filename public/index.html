@@ -173,7 +173,7 @@
           <div class="history-head" aria-hidden="true"><span>EPOCH</span><span>$EMBER</span><span>TX</span></div>
           <div class="history-list" id="airdrop-history"><p>No completed airdrops loaded.</p></div>
         </div>
-        <p class="account-note" id="account-note">Transferred tokens do not create a tracked entry. Only verified pool buys count.</p>
+        <p class="account-note" id="account-note">Only verified pool buys create entry. Selling or sending reduces tracked units and locks the wallet out for that epoch. A full exit clears entry.</p>
       </div>
     </section>
 
@@ -195,7 +195,7 @@
         <div><dt>VERIFIED POOL BUY</dt><dd>Creates tracked cost basis</dd><span class="rule-positive">COUNTS</span></div>
         <div><dt>ADDITIONAL BUY</dt><dd>Updates weighted average entry</dd><span>UPDATES</span></div>
         <div><dt>INCOMING TRANSFER</dt><dd>Creates no entry or eligible units</dd><span>NO BASIS</span></div>
-        <div><dt>SELL OR SEND</dt><dd>Excludes that wallet for the epoch</dd><span class="rule-hot">EXCLUDED</span></div>
+        <div><dt>SELL OR SEND</dt><dd>Reduces tracked units and excludes the wallet for that epoch</dd><span class="rule-hot">EPOCH LOCK</span></div>
       </dl>
     </section>
 
