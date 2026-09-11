@@ -17,9 +17,15 @@
       ]
     },
     {
-      "source": "/burned-logo.png",
+      "source": "/topblast-logo.png",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(favicon.png|apple-touch-icon.png)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
       ]
     }
   ]

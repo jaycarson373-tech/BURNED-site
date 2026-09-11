@@ -5,23 +5,24 @@
   const ENTRY_Y = 190;
   const CHART_WIDTH = 720;
   const CHART_HEIGHT = 420;
-  const config = window.__TOPLAST_PUBLIC_CONFIG__ || {};
+  const EPOCH_SECONDS = 900;
+  const config = window.__TOPBLAST_PUBLIC_CONFIG__ || window.__TOPLAST_PUBLIC_CONFIG__ || {};
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const elements = Object.fromEntries([
-    "burn-chart", "buy-markers", "chart-shell", "chart-mode", "price-line", "price-area", "price-point", "price-point-halo",
-    "entry-line", "current-label", "zone-status", "zone-copy", "chart-caption", "chart-price", "blast-alert", "blast-alert-wallet", "wallet-form",
-    "wallet-address", "wallet-message", "data-status", "indexed-time", "position-grid",
-    "tracked-balance", "tracked-entry", "current-price", "position-change", "position-status",
-    "total-airdropped", "account-note", "copy-mint", "zone-wallet-count", "top-blast-count",
-    "global-airdrop-total", "leaderboard-status", "leaderboard-list", "feed-status", "airdrop-feed"
+    "blast-chart", "buy-markers", "chart-shell", "chart-mode", "price-line", "price-area", "price-point", "price-point-halo",
+    "entry-line", "current-label", "zone-status", "zone-copy", "chart-caption", "chart-price", "blast-alert", "blast-alert-wallet",
+    "wallet-form", "wallet-address", "wallet-message", "data-status", "indexed-time", "position-grid", "tracked-balance",
+    "tracked-entry", "current-price", "position-change", "position-status", "blast-depth", "next-epoch", "total-airdropped",
+    "account-note", "copy-mint", "zone-wallet-count", "top-blast-count", "global-airdrop-total", "leaderboard-status",
+    "leaderboard-list", "feed-status", "airdrop-feed", "history-status", "airdrop-history"
   ].map(id => [id, document.getElementById(id)]));
 
   let protocol = null;
   let epochPrices = [];
   let recentBuys = [];
-  let recentDistributions = [];
   let selectedEntryRaw = null;
   let selectedWallet = null;
+  let selectedWalletLoaded = false;
   let previewFrame = 0;
   let lastPreviewPaint = 0;
   let showingFinalizedData = false;
@@ -41,10 +42,11 @@
     return points.map(([x, y], index) => `${index ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
   }
 
-  function setChartState(burned, currentY) {
-    elements["chart-shell"].dataset.state = burned ? "burned" : "safe";
-    elements["zone-status"].textContent = burned ? "BLASTED" : "SAFE";
-    elements["zone-copy"].textContent = burned
+  function setChartState(blasted, currentY) {
+    elements["chart-shell"].dataset.state = blasted ? "blasted" : "clear";
+    elements["zone-status"].textContent = blasted ? "BLASTED" : "CLEAR";
+    elements["zone-status"].dataset.state = blasted ? "blasted" : "clear";
+    elements["zone-copy"].textContent = blasted
       ? "Below the line. Inside the Blast Zone."
       : "Above the line. Outside the Blast Zone.";
     const top = Math.min(86, Math.max(9, currentY / CHART_HEIGHT * 100));
@@ -84,15 +86,15 @@
     showingFinalizedData = false;
     elements["entry-line"].setAttribute("y1", String(ENTRY_Y));
     elements["entry-line"].setAttribute("y2", String(ENTRY_Y));
-    document.querySelector(".burn-field").setAttribute("y", String(ENTRY_Y));
-    document.querySelector(".burn-field").setAttribute("height", String(CHART_HEIGHT - ENTRY_Y));
+    document.querySelector(".blast-field").setAttribute("y", String(ENTRY_Y));
+    document.querySelector(".blast-field").setAttribute("height", String(CHART_HEIGHT - ENTRY_Y));
     document.querySelector(".entry-label").style.top = "calc(45.24% - 1.5rem)";
     document.querySelector(".entry-label").hidden = false;
     document.querySelector(".zone-label").hidden = false;
     elements["entry-line"].hidden = false;
-    document.querySelector(".burn-field").hidden = false;
+    document.querySelector(".blast-field").hidden = false;
     elements["buy-markers"].replaceChildren();
-    elements["burn-chart"].setAttribute("aria-label", "Illustration of price moving above and below a tracked entry line");
+    elements["blast-chart"].setAttribute("aria-label", "Illustration of price moving above and below a tracked entry line");
     elements["chart-mode"].textContent = "MECHANIC PREVIEW";
     elements["chart-caption"].textContent = "Illustrative movement. No live price is shown.";
     elements["chart-price"].textContent = "—";
@@ -104,15 +106,14 @@
   }
 
   function executionPrice(buy) {
-    const amount = asRaw(buy.amount_toplast_raw, true), paid = asRaw(buy.amount_ember_raw, true);
-    if (!amount || !paid) return null;
+    const amount = asRaw(buy.amount_toplast_raw, true);
+    const paid = asRaw(buy.amount_ember_raw, true);
     return amount && paid ? paid * SCALE / amount : null;
   }
 
   function renderBuyMarkers(yFor, xFor) {
     elements["buy-markers"].replaceChildren();
-    const buys = [...recentBuys].reverse();
-    for (const buy of buys) {
+    for (const buy of [...recentBuys].reverse()) {
       const price = executionPrice(buy);
       if (!price) continue;
       const x = xFor(Date.parse(buy.occurred_at));
@@ -140,9 +141,10 @@
     })).filter(point => point.value && Number.isFinite(point.time));
     const currentPrice = asRaw(protocol?.current_price_raw, true);
     const currentTime = Date.parse(protocol?.current_price_time || protocol?.indexed_through_time || "");
-    if (currentPrice && Number.isFinite(currentTime)) series.push({value: currentPrice, time: currentTime});
+    if (currentPrice && Number.isFinite(currentTime)) series.push({ value: currentPrice, time: currentTime });
     series.sort((a, b) => a.time - b.time);
     if (series.length < 2) return false;
+
     const values = series.map(point => point.value);
     const buyPrices = recentBuys.map(executionPrice).filter(Boolean);
     const entry = asRaw(entryRaw, true);
@@ -157,10 +159,9 @@
     const yFor = value => 28 + Number((maximum - value) * 10000n / spread) / 10000 * 354;
     const firstTime = series[0].time;
     const lastTime = series.at(-1).time;
-    const xFor = time => {
-      if (!Number.isFinite(time) || lastTime <= firstTime) return CHART_WIDTH / 2;
-      return Math.min(CHART_WIDTH - 12, Math.max(12, (time - firstTime) / (lastTime - firstTime) * CHART_WIDTH));
-    };
+    const xFor = time => !Number.isFinite(time) || lastTime <= firstTime
+      ? CHART_WIDTH / 2
+      : Math.min(CHART_WIDTH - 12, Math.max(12, (time - firstTime) / (lastTime - firstTime) * CHART_WIDTH));
     const points = series.map(point => [xFor(point.time), yFor(point.value)]);
     const line = pathFrom(points);
     const current = points.at(-1);
@@ -174,35 +175,35 @@
     showingFinalizedData = true;
     window.cancelAnimationFrame(previewFrame);
     elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
-    elements["chart-mode"].textContent = "FINALIZED DATA";
+    elements["chart-mode"].textContent = "LIVE BLAST ZONE";
     elements["chart-price"].textContent = currentPrice ? `${formatPrice(currentPrice)} $EMBER` : "—";
 
     if (!entry) {
       elements["chart-shell"].dataset.state = "market";
       elements["entry-line"].hidden = true;
-      document.querySelector(".burn-field").hidden = true;
+      document.querySelector(".blast-field").hidden = true;
       document.querySelector(".entry-label").hidden = true;
       document.querySelector(".zone-label").hidden = true;
-      elements["zone-status"].textContent = "MARKET INDEXED";
-      elements["zone-copy"].textContent = "Search a wallet to place its Blast Zone.";
-      elements["chart-caption"].textContent = "Finalized pool prices. TOP BLAST markers are verified buys.";
-      elements["burn-chart"].setAttribute("aria-label", "Finalized TOPLAST price history with verified TOP BLAST buy markers");
+      elements["zone-status"].textContent = "MARKET LIVE";
+      elements["zone-copy"].textContent = "Search a wallet to place its tracked entry.";
+      elements["chart-caption"].textContent = "Finalized pool prices. Markers are verified buys.";
+      elements["blast-chart"].setAttribute("aria-label", "Finalized TOPBLAST price history with verified buy markers");
       return true;
     }
 
     const entryY = yFor(entry);
     elements["entry-line"].hidden = false;
-    document.querySelector(".burn-field").hidden = false;
+    document.querySelector(".blast-field").hidden = false;
     document.querySelector(".entry-label").hidden = false;
     document.querySelector(".zone-label").hidden = false;
     elements["entry-line"].setAttribute("y1", entryY.toFixed(1));
     elements["entry-line"].setAttribute("y2", entryY.toFixed(1));
-    document.querySelector(".burn-field").setAttribute("y", entryY.toFixed(1));
-    document.querySelector(".burn-field").setAttribute("height", Math.max(0, CHART_HEIGHT - entryY).toFixed(1));
+    document.querySelector(".blast-field").setAttribute("y", entryY.toFixed(1));
+    document.querySelector(".blast-field").setAttribute("height", Math.max(0, CHART_HEIGHT - entryY).toFixed(1));
     document.querySelector(".entry-label").style.top = `calc(${Math.min(91, Math.max(5, entryY / CHART_HEIGHT * 100)).toFixed(2)}% - 1.5rem)`;
     setChartState(values.at(-1) < entry, current[1]);
     elements["chart-caption"].textContent = "Finalized prices and verified buys compared with this wallet's tracked entry.";
-    elements["burn-chart"].setAttribute("aria-label", "Finalized indexed TOPLAST price history and buys compared with the searched wallet's tracked entry");
+    elements["blast-chart"].setAttribute("aria-label", "Finalized indexed TOPBLAST price history and buys compared with the searched wallet's tracked entry");
     return true;
   }
 
@@ -265,7 +266,7 @@
     const negative = value < 0n;
     const digits = (negative ? -value : value).toString().padStart(decimals + 1, "0");
     const integer = decimals ? digits.slice(0, -decimals) : digits;
-    let fraction = decimals ? digits.slice(-decimals, -decimals + maxFraction).replace(/0+$/, "") : "";
+    const fraction = decimals ? digits.slice(-decimals, -decimals + maxFraction).replace(/0+$/, "") : "";
     if (decimals && !fraction && value !== 0n && BigInt(integer) === 0n) return `${negative ? "-" : ""}<0.${"0".repeat(Math.max(0, maxFraction - 1))}1`;
     const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     return `${negative ? "-" : ""}${grouped}${fraction ? `.${fraction}` : ""}`;
@@ -273,16 +274,16 @@
 
   function formatPrice(rawValue) {
     if (!rawValue || !Number.isInteger(protocol?.burned_decimals) || !Number.isInteger(protocol?.ember_decimals)) return "—";
-    const burnedDecimals = protocol.burned_decimals;
+    const tokenDecimals = protocol.burned_decimals;
     const emberDecimals = protocol.ember_decimals;
-    if (burnedDecimals >= emberDecimals) return formatDecimal(BigInt(rawValue) * 10n ** BigInt(burnedDecimals - emberDecimals), 18, 6);
-    return formatDecimal(rawValue, 18 + emberDecimals - burnedDecimals, 6);
+    if (tokenDecimals >= emberDecimals) return formatDecimal(BigInt(rawValue) * 10n ** BigInt(tokenDecimals - emberDecimals), 18, 6);
+    return formatDecimal(rawValue, 18 + emberDecimals - tokenDecimals, 6);
   }
 
   function formatPercent(currentRaw, entryRaw) {
-    const current = asRaw(currentRaw), entry = asRaw(entryRaw, true);
+    const current = asRaw(currentRaw);
+    const entry = asRaw(entryRaw, true);
     if (current === null || entry === null) return "—";
-    if (!entry) return "—";
     const basisPoints = (current - entry) * 10000n / entry;
     const sign = basisPoints > 0n ? "+" : "";
     return `${sign}${(Number(basisPoints) / 100).toFixed(2)}%`;
@@ -298,48 +299,98 @@
     return leadingZeroes + hex.length / 2 === 32;
   }
 
+  function epochCountdown() {
+    if (!Number.isInteger(protocol?.current_epoch) || !protocol?.current_price_raw) return "—";
+    const remaining = Math.ceil((protocol.current_epoch + 1) * EPOCH_SECONDS - Date.now() / 1000);
+    if (remaining <= 0) return "SETTLING";
+    const minutes = Math.floor(remaining / 60);
+    return `${String(minutes).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`;
+  }
+
+  function updateEpochCountdown() {
+    if (selectedWalletLoaded) elements["next-epoch"].textContent = epochCountdown();
+  }
+
   function setMessage(message, tone = "") {
     elements["wallet-message"].textContent = message;
     if (tone) elements["wallet-message"].dataset.tone = tone;
     else delete elements["wallet-message"].dataset.tone;
   }
 
+  function clearHistory(status = "SEARCH WALLET") {
+    elements["history-status"].textContent = status;
+    elements["airdrop-history"].replaceChildren();
+    const empty = document.createElement("p");
+    empty.textContent = "No completed airdrops loaded.";
+    elements["airdrop-history"].append(empty);
+  }
+
+  function renderHistory(distributions) {
+    elements["airdrop-history"].replaceChildren();
+    elements["history-status"].textContent = distributions.length ? `${distributions.length} VERIFIED` : "NO AIRDROPS";
+    if (!distributions.length) {
+      const empty = document.createElement("p");
+      empty.textContent = "No completed airdrops for this wallet.";
+      elements["airdrop-history"].append(empty);
+      return;
+    }
+    for (const distribution of distributions) {
+      const row = document.createElement("div");
+      row.className = "history-row";
+      const epoch = document.createElement("span");
+      epoch.textContent = String(distribution.epoch_id);
+      const amount = document.createElement("strong");
+      amount.textContent = formatDecimal(distribution.amount_ember_raw, protocol.ember_decimals, 4);
+      const tx = document.createElement("a");
+      tx.href = `https://solscan.io/tx/${encodeURIComponent(distribution.signature)}`;
+      tx.target = "_blank";
+      tx.rel = "noreferrer";
+      tx.textContent = "VERIFY";
+      tx.setAttribute("aria-label", `Verify epoch ${distribution.epoch_id} airdrop on Solscan`);
+      row.append(epoch, amount, tx);
+      elements["airdrop-history"].append(row);
+    }
+  }
+
   function clearPosition() {
-    for (const id of ["tracked-balance", "tracked-entry", "current-price", "position-change", "position-status", "total-airdropped"]) {
+    selectedWalletLoaded = false;
+    for (const id of ["tracked-balance", "tracked-entry", "current-price", "position-change", "position-status", "blast-depth", "next-epoch", "total-airdropped"]) {
       elements[id].textContent = "—";
       delete elements[id].dataset.state;
     }
+    clearHistory();
   }
 
   function renderPosition(account) {
     const entryRaw = account.entry_price_raw;
     selectedEntryRaw = entryRaw || null;
+    selectedWalletLoaded = true;
     const currentRaw = protocol?.current_price_raw;
     const blocked = Number.isInteger(protocol?.current_epoch) && Number(account.blocked_epoch) >= protocol.current_epoch;
-    elements["tracked-balance"].textContent = `${formatDecimal(account.tracked_burned_raw, protocol.burned_decimals, 4)} $TOPLAST`;
+    const canonicalStatus = blocked ? "excluded" : String(account.position_status || "");
+    const blasted = canonicalStatus === "blasted";
+    elements["tracked-balance"].textContent = `${formatDecimal(account.tracked_burned_raw, protocol.burned_decimals, 4)} $TOPBLAST`;
     elements["tracked-entry"].textContent = entryRaw ? `${formatPrice(entryRaw)} $EMBER` : "—";
     elements["current-price"].textContent = currentRaw ? `${formatPrice(currentRaw)} $EMBER` : "—";
     elements["total-airdropped"].textContent = `${formatDecimal(account.total_airdropped_ember_raw, protocol.ember_decimals, 4)} $EMBER`;
+    elements["blast-depth"].textContent = currentRaw && entryRaw ? formatBasisPoints(account.burn_depth_bps) : "—";
+    updateEpochCountdown();
 
     if (!entryRaw || !currentRaw) {
       elements["position-status"].textContent = entryRaw ? "PRICE UNAVAILABLE" : "NO ENTRY";
-      setMessage(entryRaw ? "Tracked entry found. Current indexed price is unavailable." : "No retained verified buy entry is indexed for this wallet.");
+      setMessage(entryRaw ? "Tracked entry found. The canonical price is unavailable." : "No retained verified buy entry is indexed for this wallet.");
       return;
     }
 
-    const change = formatPercent(currentRaw, entryRaw);
-    const current = asRaw(currentRaw, true), entry = asRaw(entryRaw, true);
-    if (!current || !entry) return;
-    const burned = current < entry;
-    elements["position-change"].textContent = change;
-    elements["position-change"].dataset.state = burned ? "negative" : "positive";
-    elements["position-status"].textContent = blocked ? "EXCLUDED THIS EPOCH" : burned ? "BLASTED" : "SAFE";
-    elements["position-status"].dataset.state = blocked || burned ? "burned" : "safe";
+    elements["position-change"].textContent = formatPercent(currentRaw, entryRaw);
+    elements["position-change"].dataset.state = blasted ? "negative" : "positive";
+    elements["position-status"].textContent = blocked ? "EXCLUDED THIS EPOCH" : blasted ? "BLASTED" : "CLEAR";
+    elements["position-status"].dataset.state = blocked || blasted ? "blasted" : "clear";
     setMessage(blocked
-      ? "A sell, send or burn blocks this wallet for the current epoch."
-      : burned
+      ? "A sell, send or burn excludes this wallet for the current epoch."
+      : blasted
         ? "Below tracked entry. Final eligibility is fixed at the epoch cutoff."
-        : "Above tracked entry. This position is outside the Blast Zone.");
+        : "At or above tracked entry. This position is outside the Blast Zone.");
     renderIndexedChart(entryRaw);
   }
 
@@ -360,19 +411,32 @@
   async function refreshSelectedWallet(silent = false) {
     if (!selectedWallet || !protocol) return;
     try {
-      const rows = await readRows("burned_wallet_accounts", {
-        select: "wallet,tracked_burned_raw,tracked_cost_ember_raw,entry_price_raw,blocked_epoch,current_loss_ember_raw,burn_depth_bps,position_status,total_airdropped_ember_raw,last_airdrop_epoch,last_airdrop_signature,updated_at",
-        project_id: `eq.${protocol.project_id}`,
-        wallet: `eq.${selectedWallet}`,
-        limit: "1"
-      });
-      if (!rows[0]) {
+      const [accountRows, distributionRows] = await Promise.all([
+        readRows("burned_wallet_accounts", {
+          select: "wallet,tracked_burned_raw,tracked_cost_ember_raw,entry_price_raw,blocked_epoch,current_loss_ember_raw,burn_depth_bps,position_status,total_airdropped_ember_raw,last_airdrop_epoch,last_airdrop_signature,updated_at",
+          project_id: `eq.${protocol.project_id}`,
+          wallet: `eq.${selectedWallet}`,
+          limit: "1"
+        }),
+        readRows("toplast_distributions", {
+          select: "distribution_id,epoch_id,wallet,amount_ember_raw,signature,updated_at",
+          project_id: `eq.${protocol.project_id}`,
+          wallet: `eq.${selectedWallet}`,
+          order: "epoch_id.desc",
+          limit: "20"
+        })
+      ]);
+      renderHistory(distributionRows);
+      if (!accountRows[0]) {
         clearPosition();
+        selectedWalletLoaded = true;
+        renderHistory(distributionRows);
         selectedEntryRaw = null;
-        if (!silent) setMessage("No verified TOPLAST entry or distribution is indexed for this wallet.");
+        if (!silent) setMessage("No verified TOPBLAST entry is indexed for this wallet.");
         elements["position-status"].textContent = "NO ENTRY";
+        elements["next-epoch"].textContent = epochCountdown();
         renderIndexedChart();
-      } else renderPosition(rows[0]);
+      } else renderPosition(accountRows[0]);
     } catch {
       if (!silent) setMessage("Wallet data is temporarily unavailable. No estimated values are shown.", "error");
     }
@@ -400,20 +464,20 @@
         const wallet = document.createElement("p");
         wallet.textContent = shortWallet(account.wallet);
         const detail = document.createElement("small");
-        detail.textContent = `${formatBasisPoints(account.burn_depth_bps)} BELOW ENTRY`;
+        detail.textContent = `ENTRY ${formatPrice(account.entry_price_raw)} $EMBER`;
         wallet.append(detail);
-        const loss = document.createElement("strong");
-        loss.textContent = `${formatDecimal(account.current_loss_ember_raw, protocol.ember_decimals, 3)} $EMBER`;
-        row.append(rank, wallet, loss);
+        const depth = document.createElement("strong");
+        depth.textContent = `-${formatBasisPoints(account.burn_depth_bps)} · BLASTED`;
+        row.append(rank, wallet, depth);
         elements["leaderboard-list"].append(row);
       }
     }
 
     elements["airdrop-feed"].replaceChildren();
     const feed = [
-      ...buys.slice(0, 4).map(item => ({kind:"TOP BLAST",wallet:item.wallet,amount:item.amount_toplast_raw,decimals:protocol.burned_decimals,unit:"$TOPLAST",detail:"VERIFIED BUY",order:new Date(item.occurred_at).getTime()})),
-      ...distributions.slice(0, 4).map(item => ({kind:"AIRDROP",wallet:item.wallet,amount:item.amount_ember_raw,decimals:protocol.ember_decimals,unit:"$EMBER",detail:`EPOCH ${item.epoch_id}`,order:Number(item.epoch_id)*900000}))
-    ].sort((a,b)=>b.order-a.order).slice(0,6);
+      ...buys.slice(0, 4).map(item => ({ kind: "BUY", wallet: item.wallet, amount: item.amount_toplast_raw, decimals: protocol.burned_decimals, unit: "$TOPBLAST", detail: "VERIFIED POOL BUY", order: new Date(item.occurred_at).getTime(), signature: item.signature })),
+      ...distributions.slice(0, 4).map(item => ({ kind: "AIRDROP", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol.ember_decimals, unit: "$EMBER", detail: `EPOCH ${item.epoch_id}`, order: Number(item.epoch_id) * EPOCH_SECONDS * 1000, signature: item.signature }))
+    ].sort((a, b) => b.order - a.order).slice(0, 6);
     if (!feed.length) {
       const empty = document.createElement("div");
       empty.className = "empty-feed";
@@ -434,10 +498,16 @@
         const detail = document.createElement("small");
         detail.textContent = item.detail;
         wallet.append(detail);
-        const amount = document.createElement("strong");
+        const amount = document.createElement(item.kind === "AIRDROP" ? "a" : "strong");
         amount.className = "feed-amount";
-        amount.textContent = `${formatDecimal(item.amount,item.decimals,3)} ${item.unit}`;
-        row.append(kind,wallet,amount);
+        amount.textContent = `${formatDecimal(item.amount, item.decimals, 3)} ${item.unit}`;
+        if (item.kind === "AIRDROP") {
+          amount.href = `https://solscan.io/tx/${encodeURIComponent(item.signature)}`;
+          amount.target = "_blank";
+          amount.rel = "noreferrer";
+          amount.setAttribute("aria-label", `Verify ${amount.textContent} airdrop on Solscan`);
+        }
+        row.append(kind, wallet, amount);
         elements["airdrop-feed"].append(row);
       }
     }
@@ -462,10 +532,10 @@
           limit: "48"
         }),
         readRows("burned_wallet_accounts", {
-          select: "wallet,current_loss_ember_raw,burn_depth_bps,position_status",
+          select: "wallet,entry_price_raw,burn_depth_bps,position_status",
           project_id: `eq.${projectId}`,
           position_status: "eq.blasted",
-          order: "current_loss_ember_raw.desc",
+          order: "burn_depth_bps.desc",
           limit: "5"
         }),
         readRows("toplast_buys", {
@@ -475,7 +545,7 @@
           limit: "12"
         }),
         readRows("toplast_distributions", {
-          select: "distribution_id,wallet,amount_ember_raw,epoch_id,signature",
+          select: "distribution_id,wallet,amount_ember_raw,epoch_id,signature,updated_at",
           project_id: `eq.${projectId}`,
           order: "epoch_id.desc",
           limit: "12"
@@ -491,7 +561,6 @@
       protocol.ember_decimals = protocol.ember_decimals === null ? null : Number(protocol.ember_decimals);
       epochPrices = priceRows.reverse();
       recentBuys = buyRows;
-      recentDistributions = distributionRows;
       const newBuys = initialBuyIndexLoaded ? buyRows.filter(row => row.event_id && !knownBuyIds.has(row.event_id)) : [];
       knownBuyIds = new Set(buyRows.map(row => row.event_id).filter(Boolean));
       initialBuyIndexLoaded = true;
@@ -502,12 +571,14 @@
       statusbar.dataset.connected = delayed ? "false" : "true";
       elements["data-status"].textContent = delayed ? "INDEX DELAYED" : "FINALIZED INDEX READY";
       elements["indexed-time"].textContent = formatTimestamp(protocol.indexed_through_time || protocol.updated_at);
-      renderWatch(leaderboardRows,buyRows,distributionRows,delayed);
-      if (selectedEntryRaw) renderIndexedChart(selectedEntryRaw);
+      renderWatch(leaderboardRows, buyRows, distributionRows, delayed);
+      if (delayed) startPreview();
+      else if (selectedEntryRaw) renderIndexedChart(selectedEntryRaw);
       else renderIndexedChart();
       if (newBuys.length) showTopBlast(newBuys[0]);
       if (selectedWallet) await refreshSelectedWallet(true);
-      else setMessage("Enter a wallet to load its verified TOPLAST position.");
+      else setMessage("Enter a wallet to load its verified TOPBLAST position.");
+      updateEpochCountdown();
     } catch {
       elements["data-status"].textContent = "INDEX UNAVAILABLE";
       elements["leaderboard-status"].textContent = "INDEX UNAVAILABLE";
@@ -538,10 +609,10 @@
     const button = elements["wallet-form"].querySelector("button");
     button.disabled = true;
     button.textContent = "CHECKING";
+    elements["history-status"].textContent = "LOADING";
     try {
       if (!protocol) await loadProtocol();
       if (!protocol) throw new Error("Index unavailable");
-      selectedWallet = wallet;
       await refreshSelectedWallet(false);
     } catch {
       setMessage("Wallet data is temporarily unavailable. No estimated values are shown.", "error");
@@ -555,7 +626,7 @@
     try {
       await navigator.clipboard.writeText(elements["copy-mint"].dataset.copy);
       elements["copy-mint"].textContent = "COPIED";
-      window.setTimeout(() => { elements["copy-mint"].textContent = "COPY"; }, 1600);
+      window.setTimeout(() => { elements["copy-mint"].textContent = "COPY TEST CA"; }, 1600);
     } catch {
       elements["copy-mint"].textContent = "COPY FAILED";
     }
@@ -564,4 +635,5 @@
   startPreview();
   loadProtocol();
   window.setInterval(() => { if (!document.hidden) loadProtocol(); }, 15000);
+  window.setInterval(updateEpochCountdown, 1000);
 })();

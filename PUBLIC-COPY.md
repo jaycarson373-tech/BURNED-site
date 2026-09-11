@@ -1,0 +1,46 @@
+# TOP BLAST public copy
+
+## X bio
+
+Bought the top? Get blasted.  
+Below entry. Earn $EMBER.  
+$TOPBLAST × $EMBER on Meteora.
+
+## Project description
+
+Bought the top? Get blasted. Buy $TOPBLAST with $EMBER to establish your entry. Fall below it and you enter the Blast Zone, where eligible positions share fee-funded $EMBER airdrops approximately every 15 minutes. Verified buys count. Selling or sending excludes that wallet for the epoch.
+
+## Live thesis
+
+TOP BLAST is live.
+
+Everyone says not to buy the top.
+
+We built a token that rewards you when you do.
+
+$TOPBLAST × $EMBER
+
+Buy TOP BLAST and your verified average entry becomes the line.
+
+Price falls below your entry?
+
+You got blasted.
+
+You're now in the Blast Zone, where eligible positions share fee-funded $EMBER airdrops approximately every 15 minutes.
+
+Buy again and your weighted average entry updates.
+
+Transfers don't create an entry.
+
+Sell or send and that wallet is excluded for the epoch.
+
+The whole thing is trackable onchain.
+
+Watch the price.  
+Watch wallets cross the line.  
+Watch the top get blasted.
+
+Bought the top?  
+Get blasted.
+
+topblast.xyz

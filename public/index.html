@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#070605">
-  <meta name="color-scheme" content="dark">
-  <title>TOPLAST | Watch the Blast</title>
-  <meta name="description" content="Bought the top? Enter the Blast Zone. Watch tracked TOPLAST positions and verified $EMBER airdrops.">
-  <link rel="canonical" href="https://burned-coral.vercel.app/">
-  <meta property="og:title" content="TOPLAST | Watch the Blast">
+  <meta name="theme-color" content="#fffdf8">
+  <meta name="color-scheme" content="light">
+  <title>TOP BLAST | Bought the Top?</title>
+  <meta name="description" content="Bought the top? Get blasted. Track verified $TOPBLAST positions and fee-funded $EMBER airdrops on Meteora.">
+  <link rel="canonical" href="https://www.topblast.xyz/">
+  <meta property="og:title" content="TOP BLAST | Bought the Top?">
   <meta property="og:description" content="Below entry. Inside the Blast Zone. Eligible positions share fee-funded $EMBER airdrops.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://burned-coral.vercel.app/">
+  <meta property="og:url" content="https://www.topblast.xyz/">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="TOPLAST | Watch the Blast">
-  <meta name="twitter:description" content="Bought the top? Watch the Blast Zone and verified $EMBER airdrops.">
+  <meta name="twitter:title" content="TOP BLAST | Bought the Top?">
+  <meta name="twitter:description" content="Bought the top? Get blasted. $TOPBLAST × $EMBER on Meteora.">
   <link rel="icon" href="/favicon.png" type="image/png">
-  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
   <script src="/runtime-config.js" defer></script>
   <script src="/app.js" defer></script>
@@ -29,13 +29,13 @@
 
   <header class="site-header">
     <div class="wrap header-inner">
-      <a class="brand" href="#top" aria-label="TOPLAST home">
-        <img class="brand-logo" src="/burned-logo.png" width="44" height="44" alt="">
-        <span>TOPLAST</span>
+      <a class="brand" href="#top" aria-label="TOP BLAST home">
+        <img class="brand-logo" src="/topblast-logo.png" width="46" height="46" alt="">
+        <span>TOP BLAST</span>
       </a>
       <nav aria-label="Main navigation">
-        <a class="nav-link" href="#watch">Leaderboard</a>
-        <a class="nav-link" href="#account">Check wallet</a>
+        <a class="nav-link" href="#watch">Airdrops</a>
+        <a class="nav-link" href="#account">Wallet</a>
         <a class="header-link" href="#watch">Watch the blast</a>
       </nav>
     </div>
@@ -44,123 +44,84 @@
   <main id="main">
     <section class="hero wrap" id="top" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="eyebrow"><span class="tiny-mark" aria-hidden="true"></span>$TOPLAST / $EMBER · METEORA</p>
+        <img class="hero-mark" src="/topblast-logo.png" width="172" height="172" alt="TOP BLAST comet logo">
+        <p class="eyebrow"><span class="tiny-mark" aria-hidden="true"></span>$TOPBLAST / $EMBER · METEORA</p>
         <h1 id="hero-title">BOUGHT THE TOP?<br><span>GET BLASTED.</span></h1>
-        <p class="hero-description">Buy $TOPLAST. Fall below your tracked entry and enter the Blast Zone.</p>
-        <p class="hero-support">Eligible Blast Zone positions share fee-funded $EMBER airdrops.</p>
+        <p class="hero-description">Buy $TOPBLAST and establish your entry.<br>Fall below it and enter the Blast Zone.</p>
+        <p class="hero-support">Eligible Blast Zone positions share fee-funded $EMBER rewards approximately every 15 minutes.</p>
         <div class="hero-actions">
           <a class="primary-button" href="#watch">WATCH THE BLAST</a>
           <a class="secondary-button" href="#account">CHECK WALLET</a>
         </div>
         <dl class="hero-facts">
-          <div><dt>PAIR</dt><dd>$TOPLAST / $EMBER</dd></div>
+          <div><dt>PAIR</dt><dd>$TOPBLAST / $EMBER</dd></div>
           <div><dt>BASE FEE</dt><dd>3%</dd></div>
           <div><dt>EPOCH</dt><dd>~15 MIN</dd></div>
         </dl>
-        <div class="mint-row">
-          <div><span>TEST MINT</span><code>FsiDU4zc...ynkCuCTS</code></div>
-          <button type="button" id="copy-mint" data-copy="FsiDU4zcDKvuZRk3Ft4RHnRczKh4TdSi5GpdynkCuCTS">COPY</button>
-        </div>
       </div>
 
-      <section class="reward-visual burn-zone-card" id="burn-zone" aria-labelledby="burn-zone-title">
+      <section class="reward-visual blast-zone-card" id="blast-zone" aria-labelledby="blast-zone-title">
         <div class="visual-topline">
-          <div>
-            <span class="status-light" aria-hidden="true"></span>
-            <span id="burn-zone-title">BLAST ZONE</span>
-          </div>
+          <div><span class="status-light" aria-hidden="true"></span><span id="blast-zone-title">BLAST ZONE</span></div>
           <span class="data-mode" id="chart-mode">MECHANIC PREVIEW</span>
         </div>
-
-        <div class="chart-shell" id="chart-shell" data-state="burned">
-          <img class="chart-logo" src="/burned-logo.png" width="96" height="96" alt="">
-          <svg class="burn-chart" id="burn-chart" viewBox="0 0 720 420" role="img" aria-label="Illustration of price moving above and below a tracked entry line">
+        <div class="chart-shell" id="chart-shell" data-state="clear">
+          <img class="chart-logo" src="/topblast-logo.png" width="96" height="96" alt="">
+          <svg class="blast-chart" id="blast-chart" viewBox="0 0 720 420" role="img" aria-label="Illustration of price moving above and below a tracked entry line">
             <defs>
-              <linearGradient id="burn-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#ff8a3d" stop-opacity=".34"></stop>
-                <stop offset="1" stop-color="#e34014" stop-opacity=".03"></stop>
-              </linearGradient>
-              <linearGradient id="price-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#ffb16b" stop-opacity=".20"></stop>
-                <stop offset="1" stop-color="#ff6b22" stop-opacity="0"></stop>
-              </linearGradient>
-              <filter id="point-glow" x="-200%" y="-200%" width="400%" height="400%">
-                <feGaussianBlur stdDeviation="5" result="blur"></feGaussianBlur>
-                <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
-              </filter>
+              <linearGradient id="blast-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7426" stop-opacity=".38"></stop><stop offset="1" stop-color="#ee2515" stop-opacity=".05"></stop></linearGradient>
+              <linearGradient id="price-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffae20" stop-opacity=".22"></stop><stop offset="1" stop-color="#ff4f19" stop-opacity="0"></stop></linearGradient>
+              <linearGradient id="price-stroke" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffbe2e"></stop><stop offset=".48" stop-color="#ff7624"></stop><stop offset="1" stop-color="#ef2c1c"></stop></linearGradient>
+              <filter id="point-glow" x="-200%" y="-200%" width="400%" height="400%"><feGaussianBlur stdDeviation="5" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
             </defs>
             <g class="chart-grid" aria-hidden="true">
-              <line x1="0" y1="70" x2="720" y2="70"></line>
-              <line x1="0" y1="130" x2="720" y2="130"></line>
-              <line x1="0" y1="250" x2="720" y2="250"></line>
-              <line x1="0" y1="310" x2="720" y2="310"></line>
-              <line x1="120" y1="0" x2="120" y2="420"></line>
-              <line x1="240" y1="0" x2="240" y2="420"></line>
-              <line x1="360" y1="0" x2="360" y2="420"></line>
-              <line x1="480" y1="0" x2="480" y2="420"></line>
-              <line x1="600" y1="0" x2="600" y2="420"></line>
+              <line x1="0" y1="70" x2="720" y2="70"></line><line x1="0" y1="130" x2="720" y2="130"></line><line x1="0" y1="250" x2="720" y2="250"></line><line x1="0" y1="310" x2="720" y2="310"></line>
+              <line x1="120" y1="0" x2="120" y2="420"></line><line x1="240" y1="0" x2="240" y2="420"></line><line x1="360" y1="0" x2="360" y2="420"></line><line x1="480" y1="0" x2="480" y2="420"></line><line x1="600" y1="0" x2="600" y2="420"></line>
             </g>
-            <rect class="burn-field" x="0" y="190" width="720" height="230" fill="url(#burn-fill)"></rect>
+            <rect class="blast-field" x="0" y="190" width="720" height="230" fill="url(#blast-fill)"></rect>
             <path class="price-area" id="price-area" fill="url(#price-fill)"></path>
             <line class="entry-line" id="entry-line" x1="0" y1="190" x2="720" y2="190"></line>
             <path class="price-line" id="price-line"></path>
             <g class="buy-markers" id="buy-markers" aria-label="Verified TOP BLAST buys"></g>
-            <circle class="price-point-halo" id="price-point-halo" cx="700" cy="240" r="13"></circle>
-            <circle class="price-point" id="price-point" cx="700" cy="240" r="5" filter="url(#point-glow)"></circle>
+            <circle class="price-point-halo" id="price-point-halo" cx="700" cy="160" r="13"></circle>
+            <circle class="price-point" id="price-point" cx="700" cy="160" r="5" filter="url(#point-glow)"></circle>
           </svg>
           <span class="entry-label">YOUR ENTRY</span>
           <span class="current-label" id="current-label">CURRENT PRICE</span>
           <span class="zone-label">BLAST ZONE</span>
-          <div class="blast-alert" id="blast-alert" hidden aria-live="polite">
-            <span>TOP BLAST</span>
-            <b id="blast-alert-wallet">—</b>
-          </div>
-          <div class="ember-field" aria-hidden="true">
-            <i></i><i></i><i></i><i></i><i></i><i></i>
-          </div>
+          <div class="blast-alert" id="blast-alert" hidden aria-live="polite"><span>TOP BLAST</span><b id="blast-alert-wallet">—</b></div>
+          <div class="ember-field" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
-
         <div class="zone-state">
-          <div>
-            <span class="micro-label">PRICE VS ENTRY</span>
-            <strong id="zone-status">BLASTED</strong>
-          </div>
-          <div class="chart-quote">
-            <span class="micro-label">CURRENT PRICE</span>
-            <strong id="chart-price">—</strong>
-          </div>
-          <p id="zone-copy">Below the line. Inside the Blast Zone.</p>
+          <div><span class="micro-label">PRICE VS ENTRY</span><strong id="zone-status">CLEAR</strong></div>
+          <div class="chart-quote"><span class="micro-label">CURRENT PRICE</span><strong id="chart-price">—</strong></div>
+          <p id="zone-copy">Above the line. Outside the Blast Zone.</p>
         </div>
         <p class="visual-caption" id="chart-caption">Illustrative movement. No live price is shown.</p>
       </section>
     </section>
 
-    <section class="watch-section wrap" id="watch" aria-labelledby="watch-title">
-      <div class="watch-heading">
-        <div>
-          <p class="eyebrow"><span class="tiny-mark" aria-hidden="true"></span>FINALIZED FEED</p>
-          <h2 id="watch-title">WATCH THE<br><span>TOP GET BLASTED.</span></h2>
+    <section class="watch-section" id="watch" aria-labelledby="watch-title">
+      <div class="wrap">
+        <div class="watch-heading">
+          <div><p class="eyebrow"><span class="tiny-mark" aria-hidden="true"></span>FINALIZED FEED</p><h2 id="watch-title">WATCH THE<br><span>TOP GET BLASTED.</span></h2></div>
+          <p>Tracked positions and completed airdrops.<br>No sample wallets. No fake activity.</p>
         </div>
-        <p>Tracked positions and completed airdrops. No sample wallets. No fake activity.</p>
-      </div>
-      <dl class="watch-totals">
-        <div><dt>WALLETS IN ZONE</dt><dd id="zone-wallet-count">—</dd></div>
-        <div><dt>TOP BLASTS INDEXED</dt><dd id="top-blast-count">—</dd></div>
-        <div><dt>TOTAL AIRDROPPED</dt><dd id="global-airdrop-total">—</dd></div>
-      </dl>
-      <div class="watch-grid">
-        <section class="leaderboard-panel" aria-labelledby="leaderboard-title">
-          <div class="panel-head"><h3 id="leaderboard-title">IN THE BLAST ZONE</h3><span id="leaderboard-status">AWAITING INDEX</span></div>
-          <ol class="leaderboard-list" id="leaderboard-list">
-            <li class="empty-row"><span>—</span><p>No indexed positions yet.</p><strong>—</strong></li>
-          </ol>
-        </section>
-        <section class="airdrop-panel" aria-labelledby="feed-title">
-          <div class="panel-head"><h3 id="feed-title">BLAST FEED</h3><span id="feed-status">BUYS + AIRDROPS</span></div>
-          <div class="airdrop-feed" id="airdrop-feed">
-            <div class="empty-feed"><span class="feed-pulse" aria-hidden="true"></span><p>Waiting for a verified buy or settled airdrop.</p></div>
-          </div>
-        </section>
+        <dl class="watch-totals">
+          <div><dt>WALLETS IN ZONE</dt><dd id="zone-wallet-count">—</dd></div>
+          <div><dt>TOP BLASTS INDEXED</dt><dd id="top-blast-count">—</dd></div>
+          <div><dt>TOTAL $EMBER AIRDROPPED</dt><dd id="global-airdrop-total">—</dd></div>
+        </dl>
+        <div class="watch-grid">
+          <section class="leaderboard-panel" aria-labelledby="leaderboard-title">
+            <div class="panel-head"><h3 id="leaderboard-title">IN THE BLAST ZONE</h3><span id="leaderboard-status">AWAITING INDEX</span></div>
+            <ol class="leaderboard-list" id="leaderboard-list"><li class="empty-row"><span>—</span><p>No indexed positions yet.</p><strong>—</strong></li></ol>
+          </section>
+          <section class="airdrop-panel" aria-labelledby="feed-title">
+            <div class="panel-head"><h3 id="feed-title">BLAST FEED</h3><span id="feed-status">VERIFIED ONLY</span></div>
+            <div class="airdrop-feed" id="airdrop-feed"><div class="empty-feed"><span class="feed-pulse" aria-hidden="true"></span><p>Waiting for a verified buy or settled airdrop.</p></div></div>
+          </section>
+        </div>
       </div>
     </section>
 
@@ -170,98 +131,78 @@
         <h2 id="account-title">YOUR POSITION.<br><span>YOUR BLAST.</span></h2>
         <p>Search a Solana wallet to see its tracked entry, current state and completed $EMBER airdrops.</p>
       </div>
-
       <div class="account-console">
         <form class="wallet-form" id="wallet-form" novalidate>
-          <label for="wallet-address">SOLANA WALLET</label>
+          <label for="wallet-address">ENTER WALLET</label>
           <div class="wallet-input-row">
-            <input id="wallet-address" name="wallet" type="text" inputmode="text" maxlength="44" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter wallet address" aria-describedby="wallet-message">
+            <input id="wallet-address" name="wallet" type="text" inputmode="text" maxlength="44" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Solana wallet address" aria-describedby="wallet-message">
             <button type="submit">CHECK WALLET</button>
           </div>
           <p class="wallet-message" id="wallet-message" role="status">Position data appears here when the public index is connected.</p>
         </form>
-
-        <div class="account-statusbar">
-          <span><i aria-hidden="true"></i><b id="data-status">DATA NOT CONNECTED</b></span>
-          <span id="indexed-time">FINALIZED ONCHAIN DATA ONLY</span>
-        </div>
-
+        <div class="account-statusbar"><span><i aria-hidden="true"></i><b id="data-status">DATA NOT CONNECTED</b></span><span id="indexed-time">FINALIZED ONCHAIN DATA ONLY</span></div>
         <dl class="position-grid" id="position-grid" aria-live="polite">
-          <div><dt>TRACKED TOPLAST</dt><dd id="tracked-balance">—</dd></div>
+          <div><dt>TRACKED $TOPBLAST</dt><dd id="tracked-balance">—</dd></div>
           <div><dt>TRACKED ENTRY</dt><dd id="tracked-entry">—</dd></div>
           <div><dt>CURRENT PRICE</dt><dd id="current-price">—</dd></div>
           <div><dt>POSITION</dt><dd id="position-change">—</dd></div>
           <div><dt>STATUS</dt><dd id="position-status">—</dd></div>
-          <div class="airdrop-total"><dt>TOTAL AIRDROPPED</dt><dd id="total-airdropped">—</dd></div>
+          <div><dt>BLAST DEPTH</dt><dd id="blast-depth">—</dd></div>
+          <div><dt>NEXT EPOCH</dt><dd id="next-epoch">—</dd></div>
+          <div class="airdrop-total"><dt>TOTAL $EMBER AIRDROPPED</dt><dd id="total-airdropped">—</dd></div>
         </dl>
+        <div class="history-panel">
+          <div class="panel-head"><h3>AIRDROP HISTORY</h3><span id="history-status">SEARCH WALLET</span></div>
+          <div class="history-head" aria-hidden="true"><span>EPOCH</span><span>$EMBER</span><span>TX</span></div>
+          <div class="history-list" id="airdrop-history"><p>No completed airdrops loaded.</p></div>
+        </div>
         <p class="account-note" id="account-note">Transferred tokens do not create a tracked entry. Only verified pool buys count.</p>
       </div>
     </section>
 
     <section class="how-section wrap" id="how-it-works" aria-labelledby="how-title">
       <div class="section-intro">
-        <div>
-          <p class="eyebrow">HOW IT WORKS</p>
-          <h2 id="how-title">BELOW ENTRY.<br><span>ENTER THE BLAST.</span></h2>
-        </div>
+        <div><p class="eyebrow">HOW IT WORKS</p><h2 id="how-title">BELOW ENTRY.<br><span>ENTER THE BLAST.</span></h2></div>
         <p>One mechanic.<br>Three steps.</p>
       </div>
       <div class="steps">
-        <article class="step">
-          <div class="step-top"><span>01</span><i aria-hidden="true"></i></div>
-          <p class="step-label">BUY THE TOP</p>
-          <h3>Buy $TOPLAST with $EMBER.</h3>
-          <span class="step-foot">ESTABLISH ENTRY</span>
-        </article>
-        <article class="step">
-          <div class="step-top"><span>02</span><i aria-hidden="true"></i></div>
-          <p class="step-label">GET BLASTED</p>
-          <h3>Fall below your tracked entry.</h3>
-          <span class="step-foot">ENTER THE BLAST ZONE</span>
-        </article>
-        <article class="step">
-          <div class="step-top"><span>03</span><i aria-hidden="true"></i></div>
-          <p class="step-label">GET AIRDROPPED</p>
-          <h3>Share fee-funded $EMBER.</h3>
-          <span class="step-foot">ELIGIBLE POSITIONS ONLY</span>
-        </article>
+        <article class="step"><div class="step-top"><span>01</span><i aria-hidden="true"></i></div><p class="step-label">BUY THE TOP</p><h3>Buy $TOPBLAST with $EMBER.</h3><span class="step-foot">ESTABLISH ENTRY</span></article>
+        <article class="step"><div class="step-top"><span>02</span><i aria-hidden="true"></i></div><p class="step-label">GET BLASTED</p><h3>Fall below your tracked entry.</h3><span class="step-foot">ENTER THE BLAST ZONE</span></article>
+        <article class="step"><div class="step-top"><span>03</span><i aria-hidden="true"></i></div><p class="step-label">GET AIRDROPPED</p><h3>Share fee-funded $EMBER.</h3><span class="step-foot">ELIGIBLE POSITIONS ONLY</span></article>
       </div>
     </section>
 
     <section class="rules-section wrap" id="rules" aria-labelledby="rules-title">
-      <div class="rules-intro">
-        <p class="eyebrow">BLAST ZONE RULES</p>
-        <h2 id="rules-title">THE ENTRY<br><span>HAS TO BE REAL.</span></h2>
-      </div>
+      <div class="rules-intro"><p class="eyebrow">BLAST ZONE RULES</p><h2 id="rules-title">THE ENTRY<br><span>HAS TO BE REAL.</span></h2></div>
       <dl class="rules-list">
-        <div><dt>Verified pool buy</dt><dd>Creates tracked cost basis</dd><span class="rule-positive">COUNTS</span></div>
-        <div><dt>Additional buy</dt><dd>Updates weighted average entry</dd><span>UPDATES</span></div>
-        <div><dt>Incoming transfer</dt><dd>Creates no entry or eligible units</dd><span>NO BASIS</span></div>
-        <div><dt>Sell or send</dt><dd>Blocks that wallet for the epoch</dd><span class="rule-hot">EXCLUDED</span></div>
+        <div><dt>VERIFIED POOL BUY</dt><dd>Creates tracked cost basis</dd><span class="rule-positive">COUNTS</span></div>
+        <div><dt>ADDITIONAL BUY</dt><dd>Updates weighted average entry</dd><span>UPDATES</span></div>
+        <div><dt>INCOMING TRANSFER</dt><dd>Creates no entry or eligible units</dd><span>NO BASIS</span></div>
+        <div><dt>SELL OR SEND</dt><dd>Excludes that wallet for the epoch</dd><span class="rule-hot">EXCLUDED</span></div>
       </dl>
     </section>
 
     <section class="closing wrap" aria-labelledby="closing-title">
-      <img class="closing-logo" src="/burned-logo.png" width="96" height="96" alt="">
-      <div>
-        <p class="eyebrow">$TOPLAST / $EMBER</p>
-        <h2 id="closing-title">STAY FOR<br><span>THE BLAST.</span></h2>
-        <p>Watch positions cross the line.</p>
-      </div>
+      <img class="closing-logo" src="/topblast-logo.png" width="112" height="112" alt="">
+      <div><p class="eyebrow">$TOPBLAST / $EMBER</p><h2 id="closing-title">STAY FOR<br><span>THE BLAST.</span></h2><p>Watch positions cross the line.</p></div>
       <a class="primary-button" href="#watch">WATCH AIRDROPS</a>
     </section>
   </main>
 
-  <footer class="site-footer wrap">
-    <div class="footer-top">
-      <a class="brand brand-small" href="#top" aria-label="TOPLAST home">
-        <img class="brand-logo" src="/burned-logo.png" width="38" height="38" alt="">
-        <span>TOPLAST</span>
-      </a>
-      <p>SOLANA · EMBER · METEORA</p>
-      <a href="#top">Back to top</a>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-top">
+        <a class="brand brand-small" href="#top" aria-label="TOP BLAST home"><img class="brand-logo" src="/topblast-logo.png" width="40" height="40" alt=""><span>TOP BLAST</span></a>
+        <p>SOLANA · EMBER · METEORA</p>
+        <nav aria-label="Project links">
+          <a href="https://www.topblast.xyz/">TOPBLAST.XYZ</a>
+          <a href="https://www.meteora.ag/" target="_blank" rel="noreferrer">METEORA</a>
+          <a href="https://solscan.io/token/FsiDU4zcDKvuZRk3Ft4RHnRczKh4TdSi5GpdynkCuCTS" target="_blank" rel="noreferrer">TEST CONTRACT</a>
+        </nav>
+      </div>
+      <div class="developer-status"><span>PRE-LAUNCH INDEX</span><code>FsiDU4zc...ynkCuCTS</code><button type="button" id="copy-mint" data-copy="FsiDU4zcDKvuZRk3Ft4RHnRczKh4TdSi5GpdynkCuCTS">COPY TEST CA</button></div>
+      <p class="fine-print">Rewards depend on verified fee claims and qualifying positions. The approximate 15-minute schedule does not guarantee payment or recovery of trading losses.</p>
     </div>
-    <p class="fine-print">Rewards depend on verified fee claims and qualifying positions. The approximate 15-minute schedule does not guarantee payment or recovery of trading losses.</p>
   </footer>
 </body>
 </html>
