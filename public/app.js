@@ -34,6 +34,24 @@
   let initialBuyIndexLoaded = false;
   let knownBuyIds = new Set();
   let blastAlertTimer = 0;
+  let verifiedDeliveries = [];
+  let deliveryRequest = null;
+
+  function loadVerifiedDeliveries() {
+    if (!deliveryRequest) deliveryRequest = fetch("/verified-deliveries.json", { signal: AbortSignal.timeout(5000) })
+      .then(response => response.ok ? response.json() : [])
+      .then(rows => {
+        const seen = new Set();
+        verifiedDeliveries = Array.isArray(rows) ? rows.filter(row => {
+          if (row.delivery_test !== true || row.finalized !== true || row.cluster !== "mainnet-beta" || row.mint !== EMBER_MINT || row.decimals !== 6 ||
+              !validSolanaAddress(row.wallet) || !/^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(row.signature || "") || !asRaw(row.amount_ember_raw, true) ||
+              !Number.isFinite(Date.parse(row.confirmed_at)) || seen.has(row.signature)) return false;
+          seen.add(row.signature);
+          return true;
+        }) : [];
+      }).catch(() => {});
+    return deliveryRequest;
+  }
 
   function asRaw(value, positive = false) {
     if (typeof value === "number" && !Number.isSafeInteger(value)) return null;
@@ -436,15 +454,15 @@
       const row = document.createElement("div");
       row.className = "history-row";
       const epoch = document.createElement("span");
-      epoch.textContent = String(distribution.epoch_id);
+      epoch.textContent = distribution.delivery_test ? "DELIVERY TEST" : String(distribution.epoch_id);
       const amount = document.createElement("strong");
-      amount.textContent = formatDecimal(distribution.amount_ember_raw, protocol.ember_decimals, 4);
+      amount.textContent = formatDecimal(distribution.amount_ember_raw, distribution.delivery_test ? distribution.decimals : protocol.ember_decimals, 4);
       const tx = document.createElement("a");
       tx.href = `https://solscan.io/tx/${encodeURIComponent(distribution.signature)}`;
       tx.target = "_blank";
       tx.rel = "noreferrer";
       tx.textContent = "VERIFY";
-      tx.setAttribute("aria-label", `Verify epoch ${distribution.epoch_id} airdrop on Solscan`);
+      tx.setAttribute("aria-label", distribution.delivery_test ? "Verify finalized test delivery on Solscan" : `Verify epoch ${distribution.epoch_id} airdrop on Solscan`);
       row.append(epoch, amount, tx);
       elements["airdrop-history"].append(row);
     }
@@ -544,7 +562,8 @@
         renderIndexedChart();
       } else renderPosition(accountRows[0]);
       // Finalized payment history remains valid while position indexing catches up.
-      renderHistory(distributionRows);
+      const receipts = verifiedDeliveries.filter(row => row.wallet === selectedWallet && !distributionRows.some(item => item.signature === row.signature));
+      renderHistory([...distributionRows, ...receipts]);
     } catch {
       clearPosition();
       selectedEntryRaw = null;
@@ -593,7 +612,8 @@
     elements["airdrop-feed"].replaceChildren();
     const feed = [
       ...buys.slice(0, 4).map(item => ({ kind: "BUY", wallet: item.wallet, amount: item.amount_toplast_raw, decimals: protocol.burned_decimals, unit: "$TOPBLAST", detail: "VERIFIED POOL BUY", order: new Date(item.occurred_at).getTime(), signature: item.signature })),
-      ...distributions.slice(0, 4).map(item => ({ kind: "AIRDROP", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol.ember_decimals, unit: "$EMBER", detail: `EPOCH ${item.epoch_id}`, order: Number(item.epoch_id) * EPOCH_SECONDS * 1000, signature: item.signature }))
+      ...distributions.slice(0, 4).map(item => ({ kind: "AIRDROP", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol.ember_decimals, unit: "$EMBER", detail: `EPOCH ${item.epoch_id}`, order: Number(item.epoch_id) * EPOCH_SECONDS * 1000, signature: item.signature })),
+      ...verifiedDeliveries.filter(row => !distributions.some(item => item.signature === row.signature)).map(item => ({ kind: "AIRDROP", wallet: item.wallet, amount: item.amount_ember_raw, decimals: item.decimals, unit: "$EMBER", detail: "DELIVERY TEST · FINALIZED", order: Date.parse(item.confirmed_at), signature: item.signature }))
     ].sort((a, b) => b.order - a.order).slice(0, 6);
     if (!feed.length) {
       const empty = document.createElement("div");
@@ -634,6 +654,7 @@
     if (!isPublicIndexConfigured() || protocolLoading) return;
     protocolLoading = true;
     try {
+      await loadVerifiedDeliveries();
       const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "toplast";
       const [statusRows, leaderboardRows, buyRows, distributionRows, epochCount] = await Promise.all([
         readRows("burned_worker_status", {
