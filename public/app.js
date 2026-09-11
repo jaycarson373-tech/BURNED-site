@@ -2,7 +2,6 @@
   "use strict";
 
   const SCALE = 10n ** 18n;
-  const ENTRY_Y = 190;
   const CHART_WIDTH = 720;
   const CHART_HEIGHT = 420;
   const EPOCH_SECONDS = 900;
@@ -23,21 +22,20 @@
   ].map(id => [id, document.getElementById(id)]));
 
   let protocol = null;
-  let epochPrices = [];
   let recentBuys = [];
   let marketPriceSamples = [];
   let selectedEntryRaw = null;
   let selectedWallet = null;
   let selectedWalletLoaded = false;
-  let previewFrame = 0;
-  let lastPreviewPaint = 0;
-  let showingFinalizedData = false;
+  let selectedAccount = null;
+  let policyPriceSamples = [];
   let protocolLoading = false;
   let initialBuyIndexLoaded = false;
   let knownBuyIds = new Set();
   let blastAlertTimer = 0;
 
   function asRaw(value, positive = false) {
+    if (typeof value === "number" && !Number.isSafeInteger(value)) return null;
     const text = typeof value === "bigint" ? value.toString() : String(value ?? "");
     if (!/^\d{1,78}$/.test(text)) return null;
     const result = BigInt(text);
@@ -59,38 +57,7 @@
     elements["current-label"].style.top = `calc(${top.toFixed(2)}% - .8rem)`;
   }
 
-  function paintPreview(now = 0) {
-    const phase = now / 1700;
-    const points = [];
-    for (let index = 0; index < 37; index += 1) {
-      const x = index / 36 * CHART_WIDTH;
-      const wave = Math.sin(index * .42 + phase) * 32 + Math.sin(index * .17 - phase * .7) * 23;
-      const drift = Math.sin(phase * .72) * 47 + (index / 36 - .5) * Math.sin(phase * .38) * 28;
-      points.push([x, ENTRY_Y - wave - drift]);
-    }
-    const line = pathFrom(points);
-    const current = points.at(-1);
-    elements["price-line"].setAttribute("d", line);
-    elements["price-area"].setAttribute("d", `${line} L${CHART_WIDTH} ${CHART_HEIGHT} L0 ${CHART_HEIGHT} Z`);
-    for (const id of ["price-point", "price-point-halo"]) {
-      elements[id].setAttribute("cx", String(current[0]));
-      elements[id].setAttribute("cy", String(current[1]));
-    }
-    setChartState(current[1] > ENTRY_Y, current[1]);
-  }
-
-  function previewLoop(now) {
-    if (showingFinalizedData) return;
-    if (now - lastPreviewPaint > 70) {
-      paintPreview(now);
-      lastPreviewPaint = now;
-    }
-    previewFrame = window.requestAnimationFrame(previewLoop);
-  }
-
-  function startPreview() {
-    showingFinalizedData = true;
-    window.cancelAnimationFrame(previewFrame);
+  function showPendingMarket() {
     elements["entry-line"].hidden = true;
     document.querySelector(".blast-field").hidden = true;
     document.querySelector(".entry-label").hidden = true;
@@ -138,15 +105,13 @@
   }
 
   function renderIndexedChart(entryRaw = null) {
-    const series = epochPrices.map(row => ({
-      value: asRaw(row.reference_price_raw, true),
-      time: Date.parse(row.created_at)
-    })).filter(point => point.value && Number.isFinite(point.time));
     const currentPrice = asRaw(protocol?.current_price_raw, true);
-    const currentTime = Date.parse(protocol?.current_price_time || protocol?.indexed_through_time || "");
-    if (currentPrice && Number.isFinite(currentTime)) series.push({ value: currentPrice, time: currentTime });
-    series.sort((a, b) => a.time - b.time);
-    if (series.length < 2) return false;
+    const currentTime = Date.parse(protocol?.current_price_time || "");
+    if (!currentPrice || !Number.isFinite(currentTime) || !window.TopBlastIndex.fresh(protocol)) return false;
+    const point = { value: currentPrice, time: currentTime };
+    if (!policyPriceSamples.length || policyPriceSamples.at(-1).time !== currentTime) policyPriceSamples.push(point);
+    policyPriceSamples = policyPriceSamples.slice(-90);
+    const series = policyPriceSamples;
 
     const values = series.map(point => point.value);
     const buyPrices = recentBuys.map(executionPrice).filter(Boolean);
@@ -169,19 +134,17 @@
     const line = pathFrom(points);
     const current = points.at(-1);
     elements["price-line"].setAttribute("d", line);
-    elements["price-area"].setAttribute("d", `${line} L${CHART_WIDTH} ${CHART_HEIGHT} L0 ${CHART_HEIGHT} Z`);
+    elements["price-area"].setAttribute("d", points.length > 1 ? `${line} L${CHART_WIDTH} ${CHART_HEIGHT} L0 ${CHART_HEIGHT} Z` : "");
     for (const id of ["price-point", "price-point-halo"]) {
       elements[id].setAttribute("cx", String(current[0]));
       elements[id].setAttribute("cy", String(current[1]));
     }
     renderBuyMarkers(yFor, xFor);
-    showingFinalizedData = true;
-    window.cancelAnimationFrame(previewFrame);
     elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
     elements["chart-mode"].textContent = "LIVE BLAST ZONE";
     elements["chart-price"].textContent = currentPrice ? `${formatPrice(currentPrice)} $EMBER` : "—";
 
-    if (!entry) {
+    if (!entry || !selectedAccount || !window.TopBlastIndex.sameSnapshot(selectedAccount, protocol)) {
       elements["chart-shell"].dataset.state = "market";
       elements["entry-line"].hidden = true;
       document.querySelector(".blast-field").hidden = true;
@@ -189,7 +152,7 @@
       document.querySelector(".zone-label").hidden = true;
       elements["zone-status"].textContent = "MARKET LIVE";
       elements["zone-copy"].textContent = "Search a wallet to place its tracked entry.";
-      elements["chart-caption"].textContent = "Finalized pool prices. Markers are verified buys.";
+      elements["chart-caption"].textContent = "Reward-policy price in EMBER. Markers are verified buys. Final eligibility is set at the epoch cutoff.";
       elements["blast-chart"].setAttribute("aria-label", "Finalized TOPBLAST price history with verified buy markers");
       return true;
     }
@@ -204,8 +167,13 @@
     document.querySelector(".blast-field").setAttribute("y", entryY.toFixed(1));
     document.querySelector(".blast-field").setAttribute("height", Math.max(0, CHART_HEIGHT - entryY).toFixed(1));
     document.querySelector(".entry-label").style.top = `calc(${Math.min(91, Math.max(5, entryY / CHART_HEIGHT * 100)).toFixed(2)}% - 1.5rem)`;
-    setChartState(values.at(-1) < entry, current[1]);
-    elements["chart-caption"].textContent = "Finalized prices and verified buys compared with this wallet's tracked entry.";
+    setChartState(selectedAccount.position_status === "blasted", current[1]);
+    if (selectedAccount.position_status === "excluded") {
+      elements["zone-status"].textContent = "EXCLUDED";
+      elements["zone-copy"].textContent = "A sell or send excludes this wallet for the epoch.";
+      elements["chart-shell"].dataset.state = "excluded";
+    }
+    elements["chart-caption"].textContent = "Reward-policy price: higher of epoch TWAP and spot. Final eligibility is set at the epoch cutoff.";
     elements["blast-chart"].setAttribute("aria-label", "Finalized indexed TOPBLAST price history and buys compared with the searched wallet's tracked entry");
     return true;
   }
@@ -213,9 +181,7 @@
   function renderMarketChart() {
     if (!marketPriceSamples.length) return false;
     const latest = marketPriceSamples.at(-1);
-    const series = marketPriceSamples.length === 1
-      ? [{ value: latest.value, time: latest.time - 60_000 }, latest]
-      : marketPriceSamples;
+    const series = marketPriceSamples;
     let minimum = Math.min(...series.map(point => point.value));
     let maximum = Math.max(...series.map(point => point.value));
     const basePadding = Math.max(Math.abs(latest.value) * .006, Number.EPSILON);
@@ -228,13 +194,13 @@
     const spread = maximum - minimum;
     const firstTime = series[0].time;
     const lastTime = series.at(-1).time;
-    const xFor = time => 12 + (time - firstTime) / Math.max(1, lastTime - firstTime) * (CHART_WIDTH - 24);
+    const xFor = time => series.length === 1 ? CHART_WIDTH / 2 : 12 + (time - firstTime) / Math.max(1, lastTime - firstTime) * (CHART_WIDTH - 24);
     const yFor = value => 28 + (maximum - value) / spread * 354;
     const points = series.map(point => [xFor(point.time), yFor(point.value)]);
     const line = pathFrom(points);
     const current = points.at(-1);
     elements["price-line"].setAttribute("d", line);
-    elements["price-area"].setAttribute("d", `${line} L${CHART_WIDTH} ${CHART_HEIGHT} L0 ${CHART_HEIGHT} Z`);
+    elements["price-area"].setAttribute("d", points.length > 1 ? `${line} L${CHART_WIDTH} ${CHART_HEIGHT} L0 ${CHART_HEIGHT} Z` : "");
     for (const id of ["price-point", "price-point-halo"]) {
       elements[id].setAttribute("cx", String(current[0]));
       elements[id].setAttribute("cy", String(current[1]));
@@ -253,8 +219,6 @@
     elements["chart-caption"].textContent = "TEST MINT · FsiD...uCTS · Rolling price from Jupiter. Eligibility uses the finalized TOP BLAST index.";
     elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
     elements["blast-chart"].setAttribute("aria-label", "Live rolling TOPBLAST test-token market price from Jupiter");
-    showingFinalizedData = true;
-    window.cancelAnimationFrame(previewFrame);
     return true;
   }
 
@@ -279,7 +243,7 @@
         signal: controller.signal
       });
       if (!response.ok) throw new Error(`Public index returned ${response.status}`);
-      const rows = await response.json();
+      const rows = window.TopBlastIndex.parse(await response.text());
       if (!Array.isArray(rows)) throw new Error("Public index returned invalid data");
       return rows;
     } finally {
@@ -385,7 +349,7 @@
         url.searchParams.set("query", mint);
         const response = await fetch(url, { signal: controller.signal });
         if (!response.ok) throw new Error(`Jupiter returned ${response.status}`);
-        const rows = await response.json();
+        const rows = window.TopBlastIndex.parse(await response.text());
         const row = Array.isArray(rows) ? rows.find(item => item?.id === mint) : null;
         if (!row) throw new Error("Jupiter token data is unavailable");
         return row;
@@ -478,6 +442,7 @@
 
   function clearPosition() {
     selectedWalletLoaded = false;
+    selectedAccount = null;
     for (const id of ["tracked-balance", "tracked-entry", "current-price", "position-change", "position-status", "blast-depth", "next-epoch", "total-airdropped"]) {
       elements[id].textContent = "—";
       delete elements[id].dataset.state;
@@ -486,6 +451,14 @@
   }
 
   function renderPosition(account) {
+    if (!window.TopBlastIndex.sameSnapshot(account, protocol) || !window.TopBlastIndex.fresh(protocol)) {
+      clearPosition();
+      elements["position-status"].textContent = "INDEX SYNCING";
+      setMessage("Waiting for a matching finalized position snapshot.");
+      if (!renderMarketChart()) showPendingMarket();
+      return;
+    }
+    selectedAccount = account;
     const entryRaw = account.entry_price_raw;
     selectedEntryRaw = entryRaw || null;
     selectedWalletLoaded = true;
@@ -501,8 +474,9 @@
     updateEpochCountdown();
 
     if (!entryRaw || !currentRaw) {
-      elements["position-status"].textContent = entryRaw ? "PRICE UNAVAILABLE" : "NO ENTRY";
-      setMessage(entryRaw ? "Tracked entry found. The canonical price is unavailable." : "No retained verified buy entry is indexed for this wallet.");
+      elements["position-status"].textContent = blocked ? "EXCLUDED THIS EPOCH" : entryRaw ? "PRICE UNAVAILABLE" : "NO ENTRY";
+      setMessage(blocked ? "A sell or send excludes this wallet for the current epoch." : entryRaw ? "Tracked entry found. Reward-price coverage is unavailable." : "No retained verified buy entry is indexed for this wallet.");
+      if (!renderMarketChart()) showPendingMarket();
       return;
     }
 
@@ -562,12 +536,17 @@
         renderIndexedChart();
       } else renderPosition(accountRows[0]);
     } catch {
+      clearPosition();
+      selectedEntryRaw = null;
+      if (!renderMarketChart()) showPendingMarket();
       if (!silent) setMessage("Wallet data is temporarily unavailable. No estimated values are shown.", "error");
     }
   }
 
   function renderWatch(leaderboard, buys, distributions, delayed) {
-    elements["zone-wallet-count"].textContent = delayed ? "—" : formatInteger(protocol.wallets_in_zone);
+    const noPrice = !protocol.current_price_raw;
+    leaderboard = leaderboard.filter(account => window.TopBlastIndex.sameSnapshot(account, protocol));
+    elements["zone-wallet-count"].textContent = delayed || noPrice ? "—" : formatInteger(protocol.wallets_in_zone);
     elements["top-blast-count"].textContent = formatInteger(protocol.top_blasts_indexed);
     elements["global-airdrop-total"].textContent = protocol.total_airdropped_ember_raw === null
       ? "—"
@@ -577,12 +556,13 @@
       : `${formatDecimal(protocol.total_airdropped_ember_raw, protocol.ember_decimals, 3)} $EMBER`;
 
     elements["leaderboard-list"].replaceChildren();
-    if (delayed || !leaderboard.length) {
+    if (delayed || noPrice || !leaderboard.length) {
       const row = document.createElement("li");
       row.className = "empty-row";
       row.innerHTML = "<span>—</span><p>No current Blast Zone positions.</p><strong>—</strong>";
+      if (delayed || noPrice) row.querySelector("p").textContent = "Waiting for current reward-price coverage.";
       elements["leaderboard-list"].append(row);
-      elements["leaderboard-status"].textContent = delayed ? "INDEX DELAYED" : "NO POSITIONS";
+      elements["leaderboard-status"].textContent = delayed ? "INDEX DELAYED" : noPrice ? "PRICE UNAVAILABLE" : "NO POSITIONS";
     } else {
       elements["leaderboard-status"].textContent = "FINALIZED SNAPSHOT";
       for (const account of leaderboard) {
@@ -645,21 +625,14 @@
     protocolLoading = true;
     try {
       const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "toplast";
-      const [statusRows, priceRows, leaderboardRows, buyRows, distributionRows, epochCount] = await Promise.all([
+      const [statusRows, leaderboardRows, buyRows, distributionRows, epochCount] = await Promise.all([
         readRows("burned_worker_status", {
           select: "project_id,current_epoch,current_price_raw,current_price_time,burned_decimals,ember_decimals,indexed_through_slot,indexed_through_time,wallets_in_zone,top_blasts_indexed,total_airdropped_ember_raw,updated_at,mode",
           project_id: `eq.${projectId}`,
           limit: "1"
         }),
-        readRows("burned_epochs", {
-          select: "epoch_id,reference_price_raw,created_at",
-          project_id: `eq.${projectId}`,
-          reference_price_raw: "not.is.null",
-          order: "epoch_id.desc",
-          limit: "48"
-        }),
         readRows("burned_wallet_accounts", {
-          select: "wallet,entry_price_raw,burn_depth_bps,position_status",
+          select: "wallet,entry_price_raw,burn_depth_bps,position_status,updated_at",
           project_id: `eq.${projectId}`,
           position_status: "eq.blasted",
           order: "burn_depth_bps.desc",
@@ -688,27 +661,27 @@
       protocol.burned_decimals = protocol.burned_decimals === null ? null : Number(protocol.burned_decimals);
       protocol.ember_decimals = protocol.ember_decimals === null ? null : Number(protocol.ember_decimals);
       elements["market-epoch-count"].textContent = formatInteger(epochCount);
-      epochPrices = priceRows.reverse();
       recentBuys = buyRows;
       const newBuys = initialBuyIndexLoaded ? buyRows.filter(row => row.event_id && !knownBuyIds.has(row.event_id)) : [];
       knownBuyIds = new Set(buyRows.map(row => row.event_id).filter(Boolean));
       initialBuyIndexLoaded = true;
-      const age = Date.now() - new Date(protocol.updated_at).getTime();
-      const delayed = !Number.isFinite(age) || age > 180000;
+      const delayed = !window.TopBlastIndex.fresh(protocol);
       if (delayed) protocol.current_price_raw = null;
       const statusbar = document.querySelector(".account-statusbar");
       statusbar.dataset.connected = delayed ? "false" : "true";
       elements["data-status"].textContent = delayed ? "INDEX DELAYED" : "FINALIZED INDEX READY";
       elements["indexed-time"].textContent = formatTimestamp(protocol.indexed_through_time || protocol.updated_at);
       renderWatch(leaderboardRows, buyRows, distributionRows, delayed);
-      if (delayed && !renderMarketChart()) startPreview();
-      else if (selectedEntryRaw) renderIndexedChart(selectedEntryRaw);
-      else renderIndexedChart();
+      if (!renderIndexedChart(selectedEntryRaw) && !renderMarketChart()) showPendingMarket();
       if (newBuys.length) showTopBlast(newBuys[0]);
       if (selectedWallet) await refreshSelectedWallet(true);
       else setMessage("Enter a wallet to load its verified TOPBLAST position.");
       updateEpochCountdown();
     } catch {
+      protocol = null;
+      clearPosition();
+      if (!renderMarketChart()) showPendingMarket();
+      elements["zone-wallet-count"].textContent = "—";
       elements["data-status"].textContent = "INDEX UNAVAILABLE";
       elements["leaderboard-status"].textContent = "INDEX UNAVAILABLE";
       elements["feed-status"].textContent = "INDEX UNAVAILABLE";
@@ -724,7 +697,7 @@
     selectedWallet = null;
     selectedEntryRaw = null;
     clearPosition();
-    if (!renderMarketChart()) startPreview();
+    if (!renderMarketChart()) showPendingMarket();
     if (!validSolanaAddress(wallet)) {
       setMessage("Enter a valid Solana wallet address.", "error");
       elements["wallet-address"].focus();
@@ -761,7 +734,7 @@
     }
   });
 
-  startPreview();
+  showPendingMarket();
   loadMarketData();
   loadProtocol();
   window.setInterval(() => { if (!document.hidden) loadProtocol(); }, 15000);
