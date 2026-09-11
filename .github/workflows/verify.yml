@@ -1,0 +1,13 @@
+name: Verify BURNED site
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: PUBLIC_VERCEL_PROJECT_PRODUCTION_URL=burned-ci.vercel.app npm run build
