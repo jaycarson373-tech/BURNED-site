@@ -534,17 +534,17 @@
           limit: "20"
         })
       ]);
-      renderHistory(distributionRows);
       if (!accountRows[0]) {
         clearPosition();
         selectedWalletLoaded = true;
-        renderHistory(distributionRows);
         selectedEntryRaw = null;
         if (!silent) setMessage("No verified TOPBLAST entry is indexed for this wallet.");
         elements["position-status"].textContent = "NO ENTRY";
         elements["next-epoch"].textContent = epochCountdown();
         renderIndexedChart();
       } else renderPosition(accountRows[0]);
+      // Finalized payment history remains valid while position indexing catches up.
+      renderHistory(distributionRows);
     } catch {
       clearPosition();
       selectedEntryRaw = null;
