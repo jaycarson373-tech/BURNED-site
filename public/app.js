@@ -24,6 +24,7 @@
   let protocol = null;
   let recentBuys = [];
   let marketPriceSamples = [];
+  let marketAvailable = false;
   let selectedEntryRaw = null;
   let selectedWallet = null;
   let selectedWalletLoaded = false;
@@ -58,8 +59,9 @@
   }
 
   function showPendingMarket() {
-    elements["entry-line"].hidden = true;
-    document.querySelector(".blast-field").hidden = true;
+    for (const id of ["price-point", "price-point-halo"]) elements[id].toggleAttribute("hidden", true);
+    elements["entry-line"].toggleAttribute("hidden", true);
+    document.querySelector(".blast-field").toggleAttribute("hidden", true);
     document.querySelector(".entry-label").hidden = true;
     document.querySelector(".zone-label").hidden = true;
     elements["buy-markers"].replaceChildren();
@@ -136,6 +138,7 @@
     elements["price-line"].setAttribute("d", line);
     elements["price-area"].setAttribute("d", points.length > 1 ? `${line} L${CHART_WIDTH} ${CHART_HEIGHT} L0 ${CHART_HEIGHT} Z` : "");
     for (const id of ["price-point", "price-point-halo"]) {
+      elements[id].toggleAttribute("hidden", false);
       elements[id].setAttribute("cx", String(current[0]));
       elements[id].setAttribute("cy", String(current[1]));
     }
@@ -146,8 +149,8 @@
 
     if (!entry || !selectedAccount || !window.TopBlastIndex.sameSnapshot(selectedAccount, protocol)) {
       elements["chart-shell"].dataset.state = "market";
-      elements["entry-line"].hidden = true;
-      document.querySelector(".blast-field").hidden = true;
+      elements["entry-line"].toggleAttribute("hidden", true);
+      document.querySelector(".blast-field").toggleAttribute("hidden", true);
       document.querySelector(".entry-label").hidden = true;
       document.querySelector(".zone-label").hidden = true;
       elements["zone-status"].textContent = "MARKET LIVE";
@@ -158,8 +161,8 @@
     }
 
     const entryY = yFor(entry);
-    elements["entry-line"].hidden = false;
-    document.querySelector(".blast-field").hidden = false;
+    elements["entry-line"].toggleAttribute("hidden", false);
+    document.querySelector(".blast-field").toggleAttribute("hidden", false);
     document.querySelector(".entry-label").hidden = false;
     document.querySelector(".zone-label").hidden = false;
     elements["entry-line"].setAttribute("y1", entryY.toFixed(1));
@@ -179,7 +182,7 @@
   }
 
   function renderMarketChart() {
-    if (!marketPriceSamples.length) return false;
+    if (!marketAvailable || !marketPriceSamples.length || Date.now() - marketPriceSamples.at(-1).time > 90000) return false;
     const latest = marketPriceSamples.at(-1);
     const series = marketPriceSamples;
     let minimum = Math.min(...series.map(point => point.value));
@@ -202,12 +205,13 @@
     elements["price-line"].setAttribute("d", line);
     elements["price-area"].setAttribute("d", points.length > 1 ? `${line} L${CHART_WIDTH} ${CHART_HEIGHT} L0 ${CHART_HEIGHT} Z` : "");
     for (const id of ["price-point", "price-point-halo"]) {
+      elements[id].toggleAttribute("hidden", false);
       elements[id].setAttribute("cx", String(current[0]));
       elements[id].setAttribute("cy", String(current[1]));
     }
     elements["buy-markers"].replaceChildren();
-    elements["entry-line"].hidden = true;
-    document.querySelector(".blast-field").hidden = true;
+    elements["entry-line"].toggleAttribute("hidden", true);
+    document.querySelector(".blast-field").toggleAttribute("hidden", true);
     document.querySelector(".entry-label").hidden = true;
     document.querySelector(".zone-label").hidden = true;
     elements["chart-shell"].dataset.state = "market";
@@ -356,6 +360,7 @@
       };
       const [topblast, ember] = await Promise.all([token(TOPBLAST_MINT), token(EMBER_MINT)]);
       const topblastPrice = Number(topblast.usdPrice);
+      marketAvailable = Number.isFinite(topblastPrice) && topblastPrice > 0;
       elements["market-topblast-price"].textContent = formatUsdPrice(topblastPrice);
       elements["market-ember-price"].textContent = formatUsdPrice(Number(ember.usdPrice));
       renderMarketMove(elements["market-topblast-move"], Number(topblast.stats24h?.priceChange));
@@ -370,7 +375,12 @@
       }
     } catch {
       for (const id of ["market-topblast-price", "market-topblast-move", "market-ember-price", "market-ember-move"]) elements[id].textContent = "—";
+      marketAvailable = false;
       elements["market-data-status"].textContent = "MARKET DATA UNAVAILABLE";
+      if (!renderIndexedChart(selectedEntryRaw)) {
+        showPendingMarket();
+        elements["chart-mode"].textContent = "DATA UNAVAILABLE";
+      }
     } finally {
       window.clearTimeout(timeout);
     }
