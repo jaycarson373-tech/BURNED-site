@@ -29,6 +29,17 @@
   <a href="#main" class="skip-link">Skip to content</a>
 
   <header class="site-header">
+    <div class="top-activity" id="top-activity" aria-label="Recent verified Topblast buys">
+      <div class="wrap top-activity-inner">
+        <span class="top-activity-label">TOP ACTIVITY</span>
+        <a class="top-activity-event" id="top-activity-event" href="#watch">
+          <img src="/topblast-logo.png" width="22" height="22" alt="">
+          <span id="top-activity-copy">WAITING FOR THE NEXT TOP BLAST</span>
+        </a>
+        <span class="top-activity-state" id="top-activity-state">VERIFIED ONCHAIN</span>
+      </div>
+      <div class="sr-only" id="activity-announcer" role="status" aria-live="polite" aria-atomic="true"></div>
+    </div>
     <div class="wrap header-inner">
       <a class="brand" href="#top" aria-label="Topblast home">
         <img class="brand-logo" src="/topblast-logo.png" width="46" height="46" alt="">
@@ -136,7 +147,7 @@
             <ol class="leaderboard-list" id="leaderboard-list"><li class="empty-row"><span>—</span><p>No indexed positions yet.</p><strong>—</strong></li></ol>
           </section>
           <section class="airdrop-panel" aria-labelledby="feed-title">
-            <div class="panel-head"><h3 id="feed-title">BLAST FEED</h3><span id="feed-status">VERIFIED ONLY</span></div>
+            <div class="panel-head feed-head"><h3 id="feed-title">TOP BLAST FEED</h3><span id="feed-status">UPDATES EVERY MINUTE</span></div>
             <div class="airdrop-feed" id="airdrop-feed"><div class="empty-feed"><span class="feed-pulse" aria-hidden="true"></span><p>Waiting for a verified buy or settled airdrop.</p></div></div>
           </section>
         </div>

@@ -18,7 +18,8 @@
     "account-note", "zone-wallet-count", "top-blast-count", "global-airdrop-total", "leaderboard-status",
     "leaderboard-list", "feed-status", "airdrop-feed", "history-status", "airdrop-history", "market-data-status",
     "market-topblast-price", "market-topblast-move", "market-ember-price", "market-ember-move", "market-epoch-count",
-    "market-airdrop-total", "market-next-epoch"
+    "market-airdrop-total", "market-next-epoch", "top-activity", "top-activity-event", "top-activity-copy", "top-activity-state",
+    "activity-announcer"
   ].map(id => [id, document.getElementById(id)]));
 
   let protocol = null;
@@ -31,8 +32,21 @@
   let selectedAccount = null;
   let policyPriceSamples = [];
   let protocolLoading = false;
+  let activityLoading = false;
   let initialBuyIndexLoaded = false;
   let knownBuyIds = new Set();
+  let initialActivityLoaded = false;
+  let knownActivityIds = new Set();
+  let newActivityIds = new Set();
+  let activityBuys = [];
+  let activityDistributions = [];
+  let crossingActivity = [];
+  let positionStates = new Map();
+  let activityUpdatedAt = null;
+  let activityUnavailable = false;
+  let activityBannerIndex = 0;
+  let activityBannerPaused = false;
+  let activityBannerNewId = null;
   let blastAlertTimer = 0;
   let verifiedDeliveries = [];
   let deliveryRequest = null;
@@ -573,7 +587,211 @@
     }
   }
 
-  function renderWatch(leaderboard, buys, distributions, delayed) {
+  function validSignature(value) {
+    return /^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(String(value || ""));
+  }
+
+  function verifiedIndexedBuy(item) {
+    return Boolean(item?.event_id && validSolanaAddress(item.wallet) && validSignature(item.signature) &&
+      asRaw(item.amount_toplast_raw, true) && asRaw(item.amount_ember_raw, true) && Number.isFinite(Date.parse(item.occurred_at || "")));
+  }
+
+  function verifiedDistribution(item) {
+    return Boolean(item?.distribution_id && validSolanaAddress(item.wallet) && validSignature(item.signature) &&
+      asRaw(item.amount_ember_raw, true) && Number.isSafeInteger(Number(item.epoch_id)));
+  }
+
+  function activityId(kind, item) {
+    return `${kind}:${kind === "buy" ? item.event_id : item.distribution_id}`;
+  }
+
+  function recordPositionCrossings(accounts, delayed) {
+    if (delayed || !protocol?.current_price_raw) return;
+    const currentStates = new Map();
+    for (const account of accounts) {
+      if (!validSolanaAddress(account.wallet) || !window.TopBlastIndex.sameSnapshot(account, protocol) || !["safe", "blasted"].includes(account.position_status)) continue;
+      currentStates.set(account.wallet, account);
+      const previous = positionStates.get(account.wallet);
+      const crossing = window.TopBlastIndex.crossing(previous, account);
+      if (!crossing) continue;
+      const id = `crossing:${account.wallet}:${protocol.updated_at}:${crossing}`;
+      if (crossingActivity.some(item => item.id === id)) continue;
+      crossingActivity.unshift({
+        id,
+        kind: crossing === "entered" ? "ENTERED BLAST ZONE" : "LEFT BLAST ZONE",
+        className: crossing,
+        wallet: account.wallet,
+        detail: crossing === "entered" ? `${formatBasisPoints(account.burn_depth_bps)} BELOW ENTRY` : "AT OR ABOVE ENTRY",
+        order: Date.parse(protocol.current_price_time || protocol.indexed_through_time || protocol.updated_at)
+      });
+      newActivityIds.add(id);
+    }
+    if (currentStates.size || !positionStates.size) positionStates = currentStates;
+    crossingActivity = crossingActivity.slice(0, 12);
+  }
+
+  function activityTimestamp() {
+    if (!activityUpdatedAt) return "UPDATES EVERY MINUTE";
+    const value = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(activityUpdatedAt).toUpperCase();
+    return `UPDATES EVERY MINUTE · ${value}`;
+  }
+
+  function renderActivityBanner({ animate = false, newestId = null } = {}) {
+    const stale = !protocol || !window.TopBlastIndex.fresh(protocol);
+    elements["top-activity"].dataset.state = stale || activityUnavailable ? "stale" : "live";
+    elements["top-activity-event"].classList.remove("is-changing", "is-new");
+    elements["top-activity-copy"].replaceChildren();
+    if (stale || activityUnavailable) {
+      elements["top-activity-copy"].textContent = stale ? (protocol ? "INDEX DELAYED · VERIFIED ACTIVITY PAUSED" : "CONNECTING TO VERIFIED TOP ACTIVITY") : "ACTIVITY UPDATE DELAYED · SHOWING NO UNVERIFIED EVENTS";
+      elements["top-activity-state"].textContent = stale ? (protocol ? "INDEX DELAYED" : "CONNECTING") : "UPDATE DELAYED";
+      elements["top-activity-event"].href = "#watch";
+      elements["top-activity-event"].removeAttribute("target");
+      elements["top-activity-event"].removeAttribute("rel");
+      elements["top-activity-event"].setAttribute("aria-label", elements["top-activity-copy"].textContent);
+      return;
+    }
+    if (!activityBuys.length) {
+      elements["top-activity-copy"].textContent = "WAITING FOR THE NEXT TOP BLAST";
+      elements["top-activity-state"].textContent = "VERIFIED ONCHAIN";
+      elements["top-activity-event"].href = "#watch";
+      elements["top-activity-event"].removeAttribute("target");
+      elements["top-activity-event"].removeAttribute("rel");
+      elements["top-activity-event"].setAttribute("aria-label", "Waiting for the next verified Topblast buy.");
+      return;
+    }
+    activityBannerIndex %= activityBuys.length;
+    const buy = activityBuys[activityBannerIndex];
+    const id = activityId("buy", buy);
+    const wallet = document.createElement("span");
+    wallet.textContent = shortWallet(buy.wallet);
+    const action = document.createElement("strong");
+    action.textContent = "TOP BLASTED";
+    const amount = formatDecimal(buy.amount_ember_raw, protocol.ember_decimals, 3);
+    const time = document.createElement("time");
+    time.dateTime = buy.occurred_at;
+    time.textContent = window.TopBlastIndex.relativeTime(buy.occurred_at);
+    elements["top-activity-copy"].append(wallet, " ", action, ` · Bought ${amount} $EMBER worth · `, time);
+    elements["top-activity-event"].href = `https://solscan.io/tx/${encodeURIComponent(buy.signature)}`;
+    elements["top-activity-event"].target = "_blank";
+    elements["top-activity-event"].rel = "noreferrer";
+    elements["top-activity-event"].setAttribute("aria-label", `${shortWallet(buy.wallet)} top blasted. Bought ${amount} EMBER worth. Open transaction proof.`);
+    elements["top-activity-state"].textContent = "OPEN PROOF";
+    if (animate && !reducedMotion) {
+      void elements["top-activity-event"].offsetWidth;
+      elements["top-activity-event"].classList.add("is-changing");
+    }
+    if (newestId === id && !reducedMotion) {
+      elements["top-activity-event"].classList.add("is-new");
+      window.setTimeout(() => elements["top-activity-event"].classList.remove("is-new"), 1800);
+    }
+  }
+
+  function renderActivityFeed(delayed = !protocol || !window.TopBlastIndex.fresh(protocol)) {
+    elements["airdrop-feed"].replaceChildren();
+    const feed = [
+      ...activityBuys.slice(0, 8).map(item => ({ id: activityId("buy", item), kind: "TOP BLASTED", className: "buy", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol?.ember_decimals, unit: "$EMBER", detail: "VERIFIED BUY", order: Date.parse(item.occurred_at), signature: item.signature })),
+      ...activityDistributions.slice(0, 8).map(item => ({ id: activityId("distribution", item), kind: "EMBER RECEIVED", className: "ember", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol?.ember_decimals, unit: "$EMBER", detail: `EPOCH ${item.epoch_id}`, order: Number(item.epoch_id) * EPOCH_SECONDS * 1000, signature: item.signature })),
+      ...crossingActivity,
+      ...verifiedDeliveries.filter(row => !activityDistributions.some(item => item.signature === row.signature)).map(item => ({ id: `delivery:${item.signature}`, kind: "EMBER RECEIVED", className: "ember", wallet: item.wallet, amount: item.amount_ember_raw, decimals: item.decimals, unit: "$EMBER", detail: "DELIVERY TEST · FINALIZED", order: Date.parse(item.confirmed_at), signature: item.signature }))
+    ].sort((a, b) => b.order - a.order).slice(0, 7);
+    const newest = feed.find(item => newActivityIds.has(item.id));
+    if (newest) {
+      const value = newest.amount === undefined ? newest.detail : `${formatDecimal(newest.amount, newest.decimals, 3)} ${newest.unit}`;
+      elements["activity-announcer"].textContent = `New verified activity. ${shortWallet(newest.wallet)}. ${newest.kind}. ${value}.`;
+    }
+    if (!feed.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-feed";
+      empty.innerHTML = '<span class="feed-pulse" aria-hidden="true"></span><p>Waiting for a verified buy, crossing or confirmed reward.</p>';
+      elements["airdrop-feed"].append(empty);
+    } else {
+      for (const item of feed) {
+        const row = document.createElement("div");
+        row.className = `feed-row${newActivityIds.has(item.id) ? " is-new" : ""}`;
+        row.dataset.activityId = item.id;
+        const kind = document.createElement("span");
+        kind.className = `feed-kind ${item.className || ""}`;
+        kind.textContent = item.kind;
+        const wallet = document.createElement("p");
+        wallet.className = "feed-wallet";
+        wallet.textContent = shortWallet(item.wallet);
+        const detail = document.createElement("small");
+        detail.textContent = item.detail;
+        wallet.append(detail);
+        const amount = document.createElement(item.signature ? "a" : "strong");
+        amount.className = "feed-amount";
+        amount.textContent = item.amount === undefined ? "INDEXED" : `${formatDecimal(item.amount, item.decimals, 3)} ${item.unit}`;
+        if (item.signature) {
+          amount.href = `https://solscan.io/tx/${encodeURIComponent(item.signature)}`;
+          amount.target = "_blank";
+          amount.rel = "noreferrer";
+          amount.setAttribute("aria-label", `Verify ${item.kind.toLowerCase()} transaction on Solscan`);
+        }
+        row.append(kind, wallet, amount);
+        elements["airdrop-feed"].append(row);
+      }
+      if (newActivityIds.size && !reducedMotion) window.setTimeout(() => {
+        for (const row of elements["airdrop-feed"].querySelectorAll(".is-new")) row.classList.remove("is-new");
+      }, 4200);
+    }
+    elements["feed-status"].textContent = delayed ? "INDEX DELAYED" : activityUnavailable ? "UPDATE DELAYED" : activityTimestamp();
+    renderActivityBanner({ newestId: activityBannerNewId });
+    newActivityIds.clear();
+    activityBannerNewId = null;
+  }
+
+  async function loadActivity() {
+    if (!isPublicIndexConfigured() || activityLoading) return;
+    activityLoading = true;
+    try {
+      await loadVerifiedDeliveries();
+      const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "toplast";
+      const [buyRows, distributionRows] = await Promise.all([
+        readRows("toplast_buys", {
+          select: "event_id,wallet,amount_toplast_raw,amount_ember_raw,occurred_at,signature",
+          project_id: `eq.${projectId}`,
+          order: "occurred_at.desc",
+          limit: "12"
+        }),
+        readRows("toplast_distributions", {
+          select: "distribution_id,wallet,amount_ember_raw,epoch_id,signature,updated_at",
+          project_id: `eq.${projectId}`,
+          order: "epoch_id.desc",
+          limit: "12"
+        })
+      ]);
+      activityBuys = buyRows.filter(verifiedIndexedBuy);
+      activityDistributions = distributionRows.filter(verifiedDistribution);
+      recentBuys = activityBuys;
+      const ids = new Set([
+        ...activityBuys.map(item => activityId("buy", item)),
+        ...activityDistributions.map(item => activityId("distribution", item))
+      ]);
+      if (initialActivityLoaded) {
+        for (const id of ids) if (!knownActivityIds.has(id)) newActivityIds.add(id);
+      }
+      const newBuys = initialBuyIndexLoaded ? activityBuys.filter(row => row.event_id && !knownBuyIds.has(row.event_id)) : [];
+      knownBuyIds = new Set(activityBuys.map(row => row.event_id));
+      initialBuyIndexLoaded = true;
+      knownActivityIds = ids;
+      initialActivityLoaded = true;
+      activityUpdatedAt = new Date();
+      activityUnavailable = false;
+      if (newBuys.length) {
+        activityBannerIndex = Math.max(0, activityBuys.findIndex(row => row.event_id === newBuys[0].event_id));
+        activityBannerNewId = activityId("buy", newBuys[0]);
+        showTopBlast(newBuys[0]);
+      }
+      renderActivityFeed();
+    } catch {
+      activityUnavailable = true;
+      renderActivityFeed();
+    } finally {
+      activityLoading = false;
+    }
+  }
+
+  function renderWatch(leaderboard, delayed) {
     const noPrice = !protocol.current_price_raw;
     leaderboard = leaderboard.filter(account => window.TopBlastIndex.sameSnapshot(account, protocol));
     elements["zone-wallet-count"].textContent = delayed || noPrice ? "—" : formatInteger(protocol.wallets_in_zone);
@@ -610,45 +828,6 @@
       }
     }
 
-    elements["airdrop-feed"].replaceChildren();
-    const feed = [
-      ...buys.slice(0, 4).map(item => ({ kind: "BUY", wallet: item.wallet, amount: item.amount_toplast_raw, decimals: protocol.burned_decimals, unit: "$TOPBLAST", detail: "VERIFIED POOL BUY", order: new Date(item.occurred_at).getTime(), signature: item.signature })),
-      ...distributions.slice(0, 4).map(item => ({ kind: "AIRDROP", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol.ember_decimals, unit: "$EMBER", detail: `EPOCH ${item.epoch_id}`, order: Number(item.epoch_id) * EPOCH_SECONDS * 1000, signature: item.signature })),
-      ...verifiedDeliveries.filter(row => !distributions.some(item => item.signature === row.signature)).map(item => ({ kind: "AIRDROP", wallet: item.wallet, amount: item.amount_ember_raw, decimals: item.decimals, unit: "$EMBER", detail: "DELIVERY TEST · FINALIZED", order: Date.parse(item.confirmed_at), signature: item.signature }))
-    ].sort((a, b) => b.order - a.order).slice(0, 6);
-    if (!feed.length) {
-      const empty = document.createElement("div");
-      empty.className = "empty-feed";
-      empty.innerHTML = '<span class="feed-pulse" aria-hidden="true"></span><p>Waiting for a verified buy or settled airdrop.</p>';
-      elements["airdrop-feed"].append(empty);
-      elements["feed-status"].textContent = "VERIFIED ONLY";
-    } else {
-      elements["feed-status"].textContent = "AUTO REFRESH 15S";
-      for (const item of feed) {
-        const row = document.createElement("div");
-        row.className = "feed-row";
-        const kind = document.createElement("span");
-        kind.className = `feed-kind${item.kind === "AIRDROP" ? " airdrop" : ""}`;
-        kind.textContent = item.kind;
-        const wallet = document.createElement("p");
-        wallet.className = "feed-wallet";
-        wallet.textContent = shortWallet(item.wallet);
-        const detail = document.createElement("small");
-        detail.textContent = item.detail;
-        wallet.append(detail);
-        const amount = document.createElement(item.kind === "AIRDROP" ? "a" : "strong");
-        amount.className = "feed-amount";
-        amount.textContent = `${formatDecimal(item.amount, item.decimals, 3)} ${item.unit}`;
-        if (item.kind === "AIRDROP") {
-          amount.href = `https://solscan.io/tx/${encodeURIComponent(item.signature)}`;
-          amount.target = "_blank";
-          amount.rel = "noreferrer";
-          amount.setAttribute("aria-label", `Verify ${amount.textContent} airdrop on Solscan`);
-        }
-        row.append(kind, wallet, amount);
-        elements["airdrop-feed"].append(row);
-      }
-    }
   }
 
   async function loadProtocol() {
@@ -657,7 +836,7 @@
     try {
       await loadVerifiedDeliveries();
       const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "toplast";
-      const [statusRows, leaderboardRows, buyRows, distributionRows, epochCount] = await Promise.all([
+      const [statusRows, accountRows, epochCount] = await Promise.all([
         readRows("burned_worker_status", {
           select: "project_id,current_epoch,current_price_raw,current_price_time,burned_decimals,ember_decimals,indexed_through_slot,indexed_through_time,wallets_in_zone,top_blasts_indexed,total_airdropped_ember_raw,updated_at,mode",
           project_id: `eq.${projectId}`,
@@ -666,21 +845,8 @@
         readRows("burned_wallet_accounts", {
           select: "wallet,entry_price_raw,burn_depth_bps,position_status,updated_at",
           project_id: `eq.${projectId}`,
-          position_status: "eq.blasted",
           order: "burn_depth_bps.desc",
-          limit: "5"
-        }),
-        readRows("toplast_buys", {
-          select: "event_id,wallet,amount_toplast_raw,amount_ember_raw,occurred_at,signature",
-          project_id: `eq.${projectId}`,
-          order: "occurred_at.desc",
-          limit: "12"
-        }),
-        readRows("toplast_distributions", {
-          select: "distribution_id,wallet,amount_ember_raw,epoch_id,signature,updated_at",
-          project_id: `eq.${projectId}`,
-          order: "epoch_id.desc",
-          limit: "12"
+          limit: "250"
         }),
         readCount("burned_epochs", { select: "epoch_id", project_id: `eq.${projectId}` })
       ]);
@@ -693,19 +859,17 @@
       protocol.burned_decimals = protocol.burned_decimals === null ? null : Number(protocol.burned_decimals);
       protocol.ember_decimals = protocol.ember_decimals === null ? null : Number(protocol.ember_decimals);
       elements["market-epoch-count"].textContent = formatInteger(epochCount);
-      recentBuys = buyRows;
-      const newBuys = initialBuyIndexLoaded ? buyRows.filter(row => row.event_id && !knownBuyIds.has(row.event_id)) : [];
-      knownBuyIds = new Set(buyRows.map(row => row.event_id).filter(Boolean));
-      initialBuyIndexLoaded = true;
       const delayed = !window.TopBlastIndex.fresh(protocol);
       if (delayed) protocol.current_price_raw = null;
       const statusbar = document.querySelector(".account-statusbar");
       statusbar.dataset.connected = delayed ? "false" : "true";
       elements["data-status"].textContent = delayed ? "INDEX DELAYED" : "FINALIZED INDEX READY";
       elements["indexed-time"].textContent = formatTimestamp(protocol.indexed_through_time || protocol.updated_at);
-      renderWatch(leaderboardRows, buyRows, distributionRows, delayed);
+      recordPositionCrossings(accountRows, delayed);
+      const leaderboardRows = accountRows.filter(account => account.position_status === "blasted").slice(0, 5);
+      renderWatch(leaderboardRows, delayed);
+      renderActivityFeed(delayed);
       if (!renderIndexedChart(selectedEntryRaw) && !renderMarketChart()) showPendingMarket();
-      if (newBuys.length) showTopBlast(newBuys[0]);
       if (selectedWallet) await refreshSelectedWallet(true);
       else setMessage("Enter a wallet to load its verified Topblast position.");
       updateEpochCountdown();
@@ -717,6 +881,7 @@
       elements["data-status"].textContent = "INDEX UNAVAILABLE";
       elements["leaderboard-status"].textContent = "INDEX UNAVAILABLE";
       elements["feed-status"].textContent = "INDEX UNAVAILABLE";
+      renderActivityBanner();
       setMessage("The public index could not be reached. Try again shortly.", "error");
     } finally {
       protocolLoading = false;
@@ -763,10 +928,23 @@
     }
   }
 
+  elements["top-activity"].addEventListener("pointerenter", () => { activityBannerPaused = true; });
+  elements["top-activity"].addEventListener("pointerleave", () => { activityBannerPaused = false; });
+  elements["top-activity"].addEventListener("focusin", () => { activityBannerPaused = true; });
+  elements["top-activity"].addEventListener("focusout", event => {
+    if (!elements["top-activity"].contains(event.relatedTarget)) activityBannerPaused = false;
+  });
+
   showPendingMarket();
   loadMarketData();
-  loadProtocol();
+  loadProtocol().then(loadActivity);
   window.setInterval(() => { if (!document.hidden) loadProtocol(); }, 15000);
+  window.setInterval(() => { if (!document.hidden) loadActivity(); }, 60000);
   window.setInterval(() => { if (!document.hidden) loadMarketData(); }, 30000);
+  window.setInterval(() => {
+    if (document.hidden || activityBannerPaused || activityBuys.length < 2) return;
+    activityBannerIndex = (activityBannerIndex + 1) % activityBuys.length;
+    renderActivityBanner({ animate: true });
+  }, 6500);
   window.setInterval(updateEpochCountdown, 1000);
 })();
