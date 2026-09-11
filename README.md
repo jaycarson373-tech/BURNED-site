@@ -22,6 +22,8 @@ TOPBLAST_PROJECT_ID=toplast
 
 The project ID remains `toplast` for existing indexed rows. Only the Supabase publishable key belongs here. Never add the Supabase secret key, Helius key, treasury key, or signer configuration to Vercel.
 
+Set `PUBLIC_X_URL` to the official `https://x.com/` profile URL to enable the header and footer X links. Both stay hidden until a profile is configured. The footer Dexscreener link points to the verified pool currently used for testing; update it with the verified production pool at launch.
+
 ## Local preview
 
 ```sh

@@ -12,7 +12,6 @@ for (const required of [
   "BASE FEE",
   "3%",
   "approximately every 15 minutes",
-  "FsiDU4zcDKvuZRk3Ft4RHnRczKh4TdSi5GpdynkCuCTS",
   'id="blast-zone"',
   'id="watch"',
   'id="account"',
@@ -37,6 +36,7 @@ if (/ecosystem|flywheel|revolutionary|next-generation|community-powered|seamless
   throw new Error("Banned filler copy found");
 }
 if (html.includes("embercurve.fun")) throw new Error("Outbound Ember links are not allowed");
+if (/COPY TEST CA|TEST CONTRACT|FsiD/i.test(html)) throw new Error("Test address must not be displayed on the site");
 if (/\bMET\b|ASHBACK/.test(html)) throw new Error("Stale token branding or pairing");
 for (const name of ["topblast-logo.png", "favicon.png", "apple-touch-icon.png"]) {
   const image = await readFile(join("public", name));
@@ -72,5 +72,7 @@ if (supabaseUrl) {
 }
 const projectId = (process.env.TOPBLAST_PROJECT_ID ?? process.env.TOPLAST_PROJECT_ID ?? process.env.BURNED_PROJECT_ID ?? "toplast").trim();
 if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(projectId)) throw new Error("TOPBLAST_PROJECT_ID must be a short lowercase slug");
-await writeFile(join("dist", "runtime-config.js"), `window.__TOPBLAST_PUBLIC_CONFIG__ = Object.freeze(${JSON.stringify({ supabaseUrl, supabaseKey, projectId })});\n`);
+const xUrl = (process.env.PUBLIC_X_URL ?? "").trim();
+if (xUrl && !/^https:\/\/(?:www\.)?x\.com\/[A-Za-z0-9_]{1,15}\/?$/.test(xUrl)) throw new Error("PUBLIC_X_URL must be the official X profile URL");
+await writeFile(join("dist", "runtime-config.js"), `window.__TOPBLAST_PUBLIC_CONFIG__ = Object.freeze(${JSON.stringify({ supabaseUrl, supabaseKey, projectId, xUrl })});\n`);
 console.log("Topblast production build complete. Branding, metadata, assets, links, responsive styles and public configuration validated.");

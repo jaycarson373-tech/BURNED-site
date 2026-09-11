@@ -15,7 +15,7 @@
     "entry-line", "current-label", "zone-status", "zone-copy", "chart-caption", "chart-price", "blast-alert", "blast-alert-wallet",
     "wallet-form", "wallet-address", "wallet-message", "data-status", "indexed-time", "position-grid", "tracked-balance",
     "tracked-entry", "current-price", "position-change", "position-status", "blast-depth", "next-epoch", "total-airdropped",
-    "account-note", "copy-mint", "zone-wallet-count", "top-blast-count", "global-airdrop-total", "leaderboard-status",
+    "account-note", "zone-wallet-count", "top-blast-count", "global-airdrop-total", "leaderboard-status",
     "leaderboard-list", "feed-status", "airdrop-feed", "history-status", "airdrop-history", "market-data-status",
     "market-topblast-price", "market-topblast-move", "market-ember-price", "market-ember-move", "market-epoch-count",
     "market-airdrop-total", "market-next-epoch"
@@ -73,7 +73,7 @@
     elements["zone-status"].textContent = "DATA PENDING";
     delete elements["zone-status"].dataset.state;
     elements["zone-copy"].textContent = "Loading the real Topblast test-token price.";
-    elements["chart-caption"].textContent = "TEST MINT · FsiD...uCTS · Waiting for verified market data.";
+    elements["chart-caption"].textContent = "TEST DATA · Waiting for verified market data.";
     elements["chart-price"].textContent = "—";
   }
 
@@ -220,7 +220,7 @@
     elements["zone-status"].textContent = "MARKET LIVE";
     delete elements["zone-status"].dataset.state;
     elements["zone-copy"].textContent = "Real test-token price. Search a wallet for its Blast Zone status.";
-    elements["chart-caption"].textContent = "TEST MINT · FsiD...uCTS · Rolling price from Jupiter. Eligibility uses the finalized Topblast index.";
+    elements["chart-caption"].textContent = "TEST DATA · Rolling price from Jupiter. Eligibility uses the finalized Topblast index.";
     elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
     elements["blast-chart"].setAttribute("aria-label", "Live rolling Topblast test-token market price from Jupiter");
     return true;
@@ -734,15 +734,12 @@
     }
   });
 
-  elements["copy-mint"].addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(elements["copy-mint"].dataset.copy);
-      elements["copy-mint"].textContent = "COPIED";
-      window.setTimeout(() => { elements["copy-mint"].textContent = "COPY TEST CA"; }, 1600);
-    } catch {
-      elements["copy-mint"].textContent = "COPY FAILED";
+  if (/^https:\/\/(?:www\.)?x\.com\/[A-Za-z0-9_]{1,15}\/?$/.test(config.xUrl || "")) {
+    for (const link of document.querySelectorAll("[data-x-link]")) {
+      link.href = config.xUrl;
+      link.hidden = false;
     }
-  });
+  }
 
   showPendingMarket();
   loadMarketData();

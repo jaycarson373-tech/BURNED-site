@@ -123,6 +123,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   background: var(--ink);
 }
 .header-link:hover { border-color: var(--hot); background: var(--hot); transform: translateY(-1px); }
+.social-x { min-width: 44px; justify-content: center; padding: .7rem; font-size: 1rem; }
 
 .hero {
   min-height: calc(100svh - 76px);
@@ -547,11 +548,9 @@ h2 { margin: 1rem 0 0; font-size: clamp(3rem, 5vw, 5.2rem); font-weight: 650; li
 .brand-small .brand-logo { width: 38px; height: 38px; }
 .footer-top > p { color: #8c867e; font-size: .58rem; font-weight: 800; letter-spacing: .1em; }
 .footer-top nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 1.2rem; color: #c7c1b9; font-size: .58rem; font-weight: 900; letter-spacing: .08em; }
+.footer-top nav a { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; }
 .footer-top nav a:hover { color: var(--gold); }
 .developer-status { min-height: 44px; display: flex; align-items: center; gap: .8rem; margin-top: 1.3rem; padding: .65rem .75rem; color: #767169; border: 1px solid #2c2a27; font-size: .54rem; font-weight: 900; letter-spacing: .08em; }
-.developer-status code { overflow: hidden; color: #9d978f; font-family: var(--display); font-size: .63rem; text-overflow: ellipsis; white-space: nowrap; }
-.developer-status button { margin-left: auto; padding: .4rem .5rem; color: #aaa39a; border: 1px solid #3c3935; background: transparent; font-size: .52rem; font-weight: 900; letter-spacing: .08em; cursor: pointer; }
-.developer-status button:hover { color: #1f0c04; border-color: var(--ember); background: var(--ember); }
 .fine-print { max-width: 850px; margin: 1.25rem 0 0; color: #6f6a63; font-size: .62rem; line-height: 1.55; }
 
 @keyframes comet-drift { 0%,100% { transform: translate3d(0,0,0); } 50% { transform: translate3d(6px,-7px,0); } }
@@ -646,7 +645,6 @@ h2 { margin: 1rem 0 0; font-size: clamp(3rem, 5vw, 5.2rem); font-weight: 650; li
   .feed-amount { grid-column: 2; text-align: left; }
   .history-head, .history-row { grid-template-columns: 1fr 1fr 48px; gap: .5rem; }
   .developer-status { align-items: flex-start; flex-wrap: wrap; }
-  .developer-status button { margin-left: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
