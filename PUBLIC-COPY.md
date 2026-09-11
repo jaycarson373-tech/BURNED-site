@@ -8,7 +8,7 @@ $TOPBLAST × $EMBER on Meteora.
 
 ## Project description
 
-Get paid to TOPBLAST. Buy $TOPBLAST with $EMBER to establish your entry. Fall below it and you enter the Blast Zone, where eligible positions share fee-funded $EMBER airdrops approximately every 15 minutes. Verified buys count. Selling or sending excludes that wallet for the epoch.
+Get paid to TOPBLAST. Buy $TOPBLAST with $EMBER to establish your entry. Fall below it and you enter the Blast Zone, where eligible positions share 80% of verified $EMBER fee receipts approximately every 15 minutes. Rewards are weighted by measured loss. Treasury retains 20%. Verified buys count. Selling or sending excludes that wallet for the epoch.
 
 ## Live thesis
 
@@ -26,7 +26,9 @@ Price falls below your entry?
 
 You got blasted.
 
-You're now in the Blast Zone, where eligible positions share fee-funded $EMBER airdrops approximately every 15 minutes.
+You're now in the Blast Zone, where eligible positions share 80% of verified $EMBER fee receipts approximately every 15 minutes.
+
+Rewards are weighted by measured loss. Treasury retains 20%.
 
 Buy again and your weighted average entry updates.
 
