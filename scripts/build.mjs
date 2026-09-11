@@ -1,7 +1,7 @@
 import { cp, link, mkdir, rm, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 const html = await readFile('public/index.html','utf8');
-for(const required of ['<title>TOPLAST','BOUGHT THE TOP?','GET BLASTED.','Blast Zone','average entry','3%','15-minute','FsiDU4zcDKvuZRk3Ft4RHnRczKh4TdSi5GpdynkCuCTS','id="burn-zone"','id="watch"','id="account"','id="how-it-works"','id="rules"']) if(!html.includes(required)) throw new Error('Missing site content: '+required);
+for(const required of ['<title>TOPLAST','BOUGHT THE TOP?','GET BLASTED.','Blast Zone','average entry','BASE FEE','3%','15-minute','FsiDU4zcDKvuZRk3Ft4RHnRczKh4TdSi5GpdynkCuCTS','id="burn-zone"','id="watch"','id="account"','id="how-it-works"','id="rules"']) if(!html.includes(required)) throw new Error('Missing site content: '+required);
 for(const match of html.matchAll(/href="#([^"]+)"/g)) if(!html.includes('id="'+match[1]+'"')) throw new Error('Broken anchor: '+match[1]);
 for(const name of ['style.css','app.js','runtime-config.js','burned-logo.png','favicon.png']) if(!(await stat(join('public',name))).size) throw new Error('Empty asset: '+name);
 if(/[←-⇿➔-➿]/u.test(html)) throw new Error('Arrow glyphs are not allowed');
