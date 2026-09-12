@@ -91,15 +91,15 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   backdrop-filter: blur(18px);
 }
 .top-activity {
-  min-height: 38px;
+  min-height: 34px;
   color: #edf5ff;
-  border-bottom: 1px solid rgba(57, 215, 255, .20);
+  border-bottom: 1px solid rgba(57, 215, 255, .16);
   background:
     radial-gradient(circle at 50% 180%, rgba(23, 107, 255, .20), transparent 36rem),
     #06142e;
 }
 .top-activity-inner {
-  min-height: 38px;
+  min-height: 34px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -113,6 +113,17 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   white-space: nowrap;
 }
 .top-activity-label { color: #6fe7ff; }
+.top-activity-state::before {
+  width: 5px;
+  height: 5px;
+  display: inline-block;
+  margin-right: .45rem;
+  content: "";
+  border-radius: 999px;
+  background: #56e8c5;
+  box-shadow: 0 0 9px rgba(86, 232, 197, .55);
+  vertical-align: .08em;
+}
 .top-activity-event {
   min-width: 0;
   display: flex;
@@ -138,6 +149,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .top-activity-event.is-new img { animation: activity-ember 1.4s ease-out both; }
 .top-activity[data-state="stale"] .top-activity-label,
 .top-activity[data-state="stale"] .top-activity-state { color: #75dcff; }
+.top-activity[data-state="stale"] .top-activity-state::before { background: #ffca55; box-shadow: 0 0 9px rgba(255, 202, 85, .45); }
 .header-inner {
   min-height: 76px;
   display: flex;
@@ -644,8 +656,8 @@ h2 { margin: 1rem 0 0; font-size: clamp(3rem, 5vw, 5.2rem); font-weight: 650; li
 
 @media (max-width: 760px) {
   .wrap { width: calc(100% - 32px); }
-  .top-activity { min-height: 44px; }
-  .top-activity-inner { min-height: 44px; grid-template-columns: minmax(0, 1fr); }
+  .top-activity { min-height: 38px; }
+  .top-activity-inner { min-height: 38px; grid-template-columns: minmax(0, 1fr); }
   .top-activity-label, .top-activity-state { display: none; }
   .top-activity-event { justify-content: flex-start; gap: .5rem; overflow: hidden; font-size: .72rem; text-align: left; white-space: nowrap; }
   .top-activity-event > span { overflow: hidden; text-overflow: ellipsis; }

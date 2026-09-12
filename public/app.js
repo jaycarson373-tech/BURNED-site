@@ -651,13 +651,13 @@
 
   function renderActivityBanner({ animate = false, newestId = null } = {}) {
     if (!validSolanaAddress(config.topblastMint || "")) {
-      elements["top-activity"].dataset.state = "stale";
-      elements["top-activity-copy"].textContent = "WAITING FOR THE PRODUCTION TOP BLAST";
-      elements["top-activity-state"].textContent = "MINT NOT CONFIGURED";
+      elements["top-activity"].dataset.state = "ready";
+      elements["top-activity-copy"].textContent = "GET PAID TO TOPBLAST";
+      elements["top-activity-state"].textContent = "ACTIVITY STARTS AT LAUNCH";
       elements["top-activity-event"].href = "#watch";
       elements["top-activity-event"].removeAttribute("target");
       elements["top-activity-event"].removeAttribute("rel");
-      elements["top-activity-event"].setAttribute("aria-label", "Waiting for the production Topblast launch.");
+      elements["top-activity-event"].setAttribute("aria-label", "Topblast verified activity begins at launch.");
       return;
     }
     if (!isPublicIndexConfigured()) {
