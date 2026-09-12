@@ -8,12 +8,12 @@ for (const required of [
   "<title>Topblast",
   "GET PAID TO",
   "Topblast.",
-  "$TOPBLAST / $QQQx",
+  "$TOPBLAST / $RAY",
   "Blast Zone",
   "weighted average entry",
-  "REWARD TAX",
-  "3%",
-  "AUTOMATIC",
+  "POOL FEE",
+  "2%",
+  "~15 MIN",
   "STONK FUN",
   'id="blast-zone"',
   'id="watch"',
@@ -22,6 +22,9 @@ for (const required of [
   'id="rules"',
   'id="reward-history"',
   'id="market-topblast-price"',
+  'id="market-ray-price"',
+  'id="total-epoch-count"',
+  'id="next-epoch-time"',
   'id="leaderboard-title">Topblast LEADERBOARD'
 ]) {
   if (!html.includes(required)) throw new Error(`Missing site content: ${required}`);
@@ -29,13 +32,13 @@ for (const required of [
 for (const match of html.matchAll(/href="#([^"]+)"/g)) {
   if (!html.includes(`id="${match[1]}"`)) throw new Error(`Broken anchor: ${match[1]}`);
 }
-for (const name of ["style.css", "app.js", "runtime-config.js", "topblast-logo-qqqx.png", "favicon-qqqx.png", "apple-touch-icon-qqqx.png"]) {
+for (const name of ["style.css", "app.js", "runtime-config.js", "topblast-logo-ray.png", "favicon-ray.png", "apple-touch-icon-ray.png"]) {
   if (!(await stat(join("public", name))).size) throw new Error(`Empty asset: ${name}`);
 }
 if (/[←-⇿➔-➿]/u.test(html)) throw new Error("Arrow glyphs are not allowed");
 if (/\b(?:TOPLAST|BURNED|BURN ZONE|\$TOPLAST|\$BURNED)\b/i.test(html)) throw new Error("Stale public branding");
 const visibleText = html.replace(/<[^>]+>/g, " ");
-if (/\$EMBER|\bEMBER\b|METEORA/i.test(visibleText)) throw new Error("Stale public pairing or platform branding");
+if (/\$EMBER|\bEMBER\b|QQQx|METEORA/i.test(visibleText)) throw new Error("Stale public pairing or platform branding");
 if (/ecosystem|flywheel|revolutionary|next-generation|community-powered|seamless|innovative|game-changing|redefining|unlock|future of finance/i.test(html)) {
   throw new Error("Banned filler copy found");
 }
@@ -44,7 +47,7 @@ if (/COPY TEST CA|TEST CONTRACT|TEST TOKEN|TEST DATA|DELIVERY TEST|verified-deli
   throw new Error("Staging data or test addresses must not ship in the public site");
 }
 if (/\bMET\b|ASHBACK/.test(html)) throw new Error("Stale token branding or pairing");
-for (const name of ["topblast-logo-qqqx.png", "favicon-qqqx.png", "apple-touch-icon-qqqx.png"]) {
+for (const name of ["topblast-logo-ray.png", "favicon-ray.png", "apple-touch-icon-ray.png"]) {
   const image = await readFile(join("public", name));
   if (image.length < 26 || image[25] !== 6) throw new Error(`${name} must be an RGBA PNG with transparency`);
 }

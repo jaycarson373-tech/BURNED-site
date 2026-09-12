@@ -486,11 +486,11 @@ h1 span, h2 span {
 .watch-heading { display: grid; grid-template-columns: 1fr minmax(240px, 390px); gap: 4rem; align-items: end; margin-bottom: 2.6rem; }
 .watch-heading > p { margin: 0 0 .3rem; color: #97a6bd; font-size: .88rem; line-height: 1.7; }
 h2 { margin: 1rem 0 0; font-size: clamp(3rem, 5vw, 5.2rem); font-weight: 650; line-height: .93; letter-spacing: -.067em; }
-.watch-totals { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0 0 1rem; border: 1px solid var(--night-line); background: #0b1b39; }
+.watch-totals { display: grid; grid-template-columns: repeat(5, 1fr); margin: 0 0 1rem; border: 1px solid var(--night-line); background: #0b1b39; }
 .watch-totals > div { min-height: 96px; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding: 1rem; }
 .watch-totals > div + div { border-left: 1px solid var(--night-line); }
 .watch-totals dt { color: #8292aa; font-size: .57rem; font-weight: 900; letter-spacing: .1em; }
-.watch-totals dd { margin: 0; color: var(--gold); font-family: var(--display); font-size: 1.35rem; font-weight: 600; letter-spacing: -.03em; }
+.watch-totals dd { margin: 0; color: var(--gold); font-family: var(--display); font-size: clamp(.9rem, 1.2vw, 1.22rem); font-weight: 600; letter-spacing: -.03em; }
 .watch-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--night-line); background: #0b1b39; }
 .leaderboard-panel, .airdrop-panel { min-width: 0; }
 .airdrop-panel { border-left: 1px solid var(--night-line); }
@@ -637,6 +637,9 @@ h2 { margin: 1rem 0 0; font-size: clamp(3rem, 5vw, 5.2rem); font-weight: 650; li
   .market-strip-grid > div + div { border-left: 0; }
   .market-strip-grid > div:not(:nth-child(4n + 1)) { border-left: 1px solid var(--line); }
   .market-strip-grid > div:nth-child(n + 5) { border-top: 1px solid var(--line); }
+  .watch-totals { grid-template-columns: repeat(3, 1fr); }
+  .watch-totals > div:nth-child(4) { border-left: 0; }
+  .watch-totals > div:nth-child(n + 4) { border-top: 1px solid var(--night-line); }
 }
 
 @media (max-width: 760px) {
@@ -707,7 +710,7 @@ h2 { margin: 1rem 0 0; font-size: clamp(3rem, 5vw, 5.2rem); font-weight: 650; li
 
 @media (max-width: 390px) {
   .hero-actions { flex-direction: column; }
-  .hero-actions a { width: 100%; }
+  .hero-actions a { width: 100%; min-height: 50px; flex: 0 0 auto; }
   .visual-topline { align-items: flex-start; flex-direction: column; }
   .chart-shell { min-height: 280px; }
   .position-grid { grid-template-columns: 1fr; }

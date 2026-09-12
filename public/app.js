@@ -4,7 +4,7 @@
   const SCALE = 10n ** 18n;
   const CHART_WIDTH = 720;
   const CHART_HEIGHT = 420;
-  const QUOTE_MINT = "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ";
+  const QUOTE_MINT = "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R";
   const JUPITER_TOKEN_API = "https://lite-api.jup.ag/tokens/v2/search";
   const STONK_API = "https://www.stonkfun.xyz/api/public/v1";
   const config = window.__TOPBLAST_PUBLIC_CONFIG__ || {};
@@ -16,9 +16,10 @@
     "tracked-entry", "current-price", "position-change", "position-status", "blast-depth", "total-received",
     "account-note", "zone-wallet-count", "top-blast-count", "global-reward-total", "leaderboard-status",
     "leaderboard-list", "feed-status", "activity-feed", "history-status", "reward-history", "market-data-status",
-    "market-topblast-price", "market-topblast-move", "market-qqqx-price", "market-qqqx-move",
+    "market-topblast-price", "market-topblast-move", "market-ray-price", "market-ray-move",
     "market-reward-total", "top-activity", "top-activity-event", "top-activity-copy", "top-activity-state",
-    "activity-announcer"
+    "activity-announcer", "market-epoch-total", "market-next-epoch", "total-epoch-count", "next-epoch-time",
+    "wallet-next-epoch"
   ].map(id => [id, document.getElementById(id)]));
 
   let protocol = null;
@@ -26,8 +27,8 @@
   let marketPriceSamples = [];
   let marketAvailable = false;
   let stonkVerified = false;
-  let stonkRewardsRaw = null;
-  let stonkQuoteDecimals = 8;
+  let verifiedLaunchPool = null;
+  let completedEpochCount = null;
   let selectedEntryRaw = null;
   let selectedWallet = null;
   let selectedWalletLoaded = false;
@@ -162,7 +163,7 @@
     renderBuyMarkers(yFor, xFor, visibleBuys);
     elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
     elements["chart-mode"].textContent = "LIVE BLAST ZONE";
-    elements["chart-price"].textContent = currentPrice ? `${formatPrice(currentPrice)} $QQQx` : "—";
+    elements["chart-price"].textContent = currentPrice ? `${formatPrice(currentPrice)} $RAY` : "—";
 
     if (!entry || !selectedAccount || !window.TopBlastIndex.sameSnapshot(selectedAccount, protocol)) {
       elements["chart-shell"].dataset.state = "market";
@@ -172,7 +173,7 @@
       document.querySelector(".zone-label").hidden = true;
       elements["zone-status"].textContent = "MARKET LIVE";
       elements["zone-copy"].textContent = "Search a wallet to place its tracked entry.";
-      elements["chart-caption"].textContent = "Canonical price in QQQx. Markers are verified buys indexed from the configured Stonk Fun pool.";
+      elements["chart-caption"].textContent = "Canonical price in RAY. Markers are verified buys indexed from the configured Stonk Fun pool.";
       elements["blast-chart"].setAttribute("aria-label", "Finalized Topblast price history with verified buy markers");
       return true;
     }
@@ -298,6 +299,19 @@
     return `INDEXED ${new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(date).toUpperCase()}`;
   }
 
+  function renderEpochClock() {
+    const targets = [elements["market-next-epoch"], elements["next-epoch-time"], elements["wallet-next-epoch"]];
+    if (!protocol || !window.TopBlastIndex.fresh(protocol)) {
+      for (const target of targets) target.textContent = "—";
+      return;
+    }
+    const now = Math.floor(Date.now() / 1000);
+    const remaining = 900 - (now % 900);
+    const minutes = Math.floor(remaining / 60).toString().padStart(2, "0");
+    const seconds = (remaining % 60).toString().padStart(2, "0");
+    for (const target of targets) target.textContent = `${minutes}:${seconds}`;
+  }
+
   function shortWallet(wallet) {
     return typeof wallet === "string" && wallet.length > 12 ? `${wallet.slice(0, 6)}...${wallet.slice(-4)}` : "—";
   }
@@ -379,10 +393,10 @@
       const topblastPrice = Number(topblast?.usdPrice);
       marketAvailable = Number.isFinite(topblastPrice) && topblastPrice > 0;
       elements["market-topblast-price"].textContent = formatUsdPrice(topblastPrice);
-      elements["market-qqqx-price"].textContent = formatUsdPrice(Number(quote.usdPrice));
+      elements["market-ray-price"].textContent = formatUsdPrice(Number(quote.usdPrice));
       renderMarketMove(elements["market-topblast-move"], Number(topblast?.stats24h?.priceChange));
-      renderMarketMove(elements["market-qqqx-move"], Number(quote.stats24h?.priceChange));
-      const source = stonkVerified ? "STONK FUN REWARD MODE VERIFIED" : "QQQx MARKET LIVE";
+      renderMarketMove(elements["market-ray-move"], Number(quote.stats24h?.priceChange));
+      const source = stonkVerified ? "STONK FUN RAY PAIR VERIFIED" : "RAY MARKET LIVE";
       elements["market-data-status"].textContent = `${source} · ${new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(new Date()).toUpperCase()}`;
       if (Number.isFinite(topblastPrice) && topblastPrice > 0) {
         const now = Date.now();
@@ -392,7 +406,7 @@
         if (!protocol?.current_price_raw || !renderIndexedChart(selectedEntryRaw)) renderMarketChart();
       }
     } catch {
-      for (const id of ["market-topblast-price", "market-topblast-move", "market-qqqx-price", "market-qqqx-move"]) elements[id].textContent = "—";
+      for (const id of ["market-topblast-price", "market-topblast-move", "market-ray-price", "market-ray-move"]) elements[id].textContent = "—";
       marketAvailable = false;
       elements["market-data-status"].textContent = "MARKET DATA UNAVAILABLE";
       if (!renderIndexedChart(selectedEntryRaw)) {
@@ -404,40 +418,18 @@
     }
   }
 
-  function renderOfficialRewards() {
-    if (stonkRewardsRaw === null) return false;
-    const value = `${formatDecimal(stonkRewardsRaw, stonkQuoteDecimals, 3)} $QQQx`;
-    elements["global-reward-total"].textContent = value;
-    elements["market-reward-total"].textContent = value;
-    return true;
-  }
-
   async function loadStonkData() {
     if (!validSolanaAddress(config.topblastMint || "")) return;
     try {
-      const [tokenResponse, rewardsResponse] = await Promise.all([
-        fetch(`${STONK_API}/tokens/${encodeURIComponent(config.topblastMint)}`, { headers: { Accept: "application/json" } }),
-        fetch(`${STONK_API}/tokens/${encodeURIComponent(config.topblastMint)}/rewards`, { headers: { Accept: "application/json" } })
-      ]);
-      if (!tokenResponse.ok || !rewardsResponse.ok) throw new Error("Stonk Fun token data is unavailable");
-      const [tokenPayload, rewardsPayload] = await Promise.all([tokenResponse.json(), rewardsResponse.json()]);
+      const tokenResponse = await fetch(`${STONK_API}/tokens/${encodeURIComponent(config.topblastMint)}`, { headers: { Accept: "application/json" } });
+      if (!tokenResponse.ok) throw new Error("Stonk Fun token data is unavailable");
+      const tokenPayload = await tokenResponse.json();
       const token = tokenPayload?.data?.token;
-      const rewardData = rewardsPayload?.data;
-      if (token?.mint !== config.topblastMint || token?.quote?.mint !== QUOTE_MINT || token?.mode !== "reward" || Number(token?.transferFee?.bps) !== 300) {
-        throw new Error("Production mint does not match the approved QQQx 3% reward launch");
-      }
-      if (rewardData?.mint !== config.topblastMint || rewardData?.quote?.mint !== QUOTE_MINT || rewardData?.mode !== "reward") {
-        throw new Error("Stonk Fun reward data does not match the production mint");
-      }
-      const distributedRaw = asRaw(rewardData?.rewards?.distributedRaw);
-      const quoteDecimals = Number(rewardData?.quote?.decimals);
-      if (distributedRaw === null || !Number.isInteger(quoteDecimals) || quoteDecimals < 0 || quoteDecimals > 18) {
-        throw new Error("Invalid Stonk Fun reward totals");
+      if (token?.mint !== config.topblastMint || token?.quote?.mint !== QUOTE_MINT || token?.quote?.symbol !== "RAY" || token?.mode !== "standard") {
+        throw new Error("Production mint does not match the approved TOPBLAST/RAY Standard Mode launch");
       }
       stonkVerified = true;
-      stonkRewardsRaw = distributedRaw;
-      stonkQuoteDecimals = quoteDecimals;
-      renderOfficialRewards();
+      verifiedLaunchPool = validSolanaAddress(token?.pool || "") ? token.pool : null;
       const topblastPrice = Number(token?.market?.priceUsd);
       if (Number.isFinite(topblastPrice) && topblastPrice > 0) {
         elements["market-topblast-price"].textContent = formatUsdPrice(topblastPrice);
@@ -447,12 +439,10 @@
         marketAvailable = true;
         if (!protocol?.current_price_raw) renderMarketChart();
       }
-      elements["market-data-status"].textContent = `STONK FUN REWARD MODE VERIFIED · ${new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(new Date()).toUpperCase()}`;
+      elements["market-data-status"].textContent = `STONK FUN RAY PAIR VERIFIED · ${new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(new Date()).toUpperCase()}`;
     } catch (error) {
       stonkVerified = false;
-      stonkRewardsRaw = null;
-      elements["global-reward-total"].textContent = "—";
-      elements["market-reward-total"].textContent = "—";
+      verifiedLaunchPool = null;
       elements["market-data-status"].textContent = error.message.includes("does not match")
         ? "PRODUCTION MINT CONFIGURATION MISMATCH"
         : "STONK FUN DATA UNAVAILABLE";
@@ -479,7 +469,7 @@
     elements["history-status"].textContent = status;
     elements["reward-history"].replaceChildren();
     const empty = document.createElement("p");
-    empty.textContent = "No confirmed QQQx rewards loaded.";
+    empty.textContent = "No confirmed RAY rewards loaded.";
     elements["reward-history"].append(empty);
   }
 
@@ -488,7 +478,7 @@
     elements["history-status"].textContent = distributions.length ? `${distributions.length} VERIFIED` : "NO REWARDS";
     if (!distributions.length) {
       const empty = document.createElement("p");
-      empty.textContent = "No confirmed QQQx rewards for this wallet.";
+      empty.textContent = "No confirmed RAY rewards for this wallet.";
       elements["reward-history"].append(empty);
       return;
     }
@@ -504,7 +494,7 @@
       tx.target = "_blank";
       tx.rel = "noreferrer";
       tx.textContent = "VERIFY";
-      tx.setAttribute("aria-label", `Verify QQQx reward ${distribution.epoch_id} on Solscan`);
+      tx.setAttribute("aria-label", `Verify RAY reward ${distribution.epoch_id} on Solscan`);
       row.append(epoch, amount, tx);
       elements["reward-history"].append(row);
     }
@@ -517,6 +507,7 @@
       elements[id].textContent = "—";
       delete elements[id].dataset.state;
     }
+    elements["wallet-next-epoch"].textContent = protocol && window.TopBlastIndex.fresh(protocol) ? elements["next-epoch-time"].textContent : "—";
     clearHistory();
   }
 
@@ -537,9 +528,9 @@
     const canonicalStatus = blocked ? "excluded" : String(account.position_status || "");
     const blasted = canonicalStatus === "blasted";
     elements["tracked-balance"].textContent = `${formatDecimal(account.tracked_burned_raw, protocol.burned_decimals, 4)} $TOPBLAST`;
-    elements["tracked-entry"].textContent = entryRaw ? `${formatPrice(entryRaw)} $QQQx` : "—";
-    elements["current-price"].textContent = currentRaw ? `${formatPrice(currentRaw)} $QQQx` : "—";
-    elements["total-received"].textContent = `${formatDecimal(account.total_airdropped_ember_raw, protocol.ember_decimals, 4)} $QQQx`;
+    elements["tracked-entry"].textContent = entryRaw ? `${formatPrice(entryRaw)} $RAY` : "—";
+    elements["current-price"].textContent = currentRaw ? `${formatPrice(currentRaw)} $RAY` : "—";
+    elements["total-received"].textContent = `${formatDecimal(account.total_airdropped_ember_raw, protocol.ember_decimals, 4)} $RAY`;
     elements["blast-depth"].textContent = currentRaw && entryRaw ? formatBasisPoints(account.burn_depth_bps) : "—";
     if (!entryRaw || !currentRaw) {
       elements["position-status"].textContent = blocked ? "EXCLUDED THIS EPOCH" : entryRaw ? "PRICE UNAVAILABLE" : "NO ENTRY";
@@ -712,11 +703,11 @@
     const time = document.createElement("time");
     time.dateTime = buy.occurred_at;
     time.textContent = window.TopBlastIndex.relativeTime(buy.occurred_at);
-    elements["top-activity-copy"].append(wallet, " ", action, ` · Bought ${amount} $QQQx worth · `, time);
+    elements["top-activity-copy"].append(wallet, " ", action, ` · Bought ${amount} $RAY worth · `, time);
     elements["top-activity-event"].href = `https://solscan.io/tx/${encodeURIComponent(buy.signature)}`;
     elements["top-activity-event"].target = "_blank";
     elements["top-activity-event"].rel = "noreferrer";
-    elements["top-activity-event"].setAttribute("aria-label", `${shortWallet(buy.wallet)} top blasted. Bought ${amount} QQQx worth. Open transaction proof.`);
+    elements["top-activity-event"].setAttribute("aria-label", `${shortWallet(buy.wallet)} top blasted. Bought ${amount} RAY worth. Open transaction proof.`);
     elements["top-activity-state"].textContent = "OPEN PROOF";
     if (animate && !reducedMotion) {
       void elements["top-activity-event"].offsetWidth;
@@ -731,8 +722,8 @@
   function renderActivityFeed(delayed = !protocol || !window.TopBlastIndex.fresh(protocol)) {
     elements["activity-feed"].replaceChildren();
     const feed = [
-      ...activityBuys.slice(0, 8).map(item => ({ id: activityId("buy", item), kind: "TOP BLASTED", className: "buy", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol?.ember_decimals, unit: "$QQQx", detail: "VERIFIED BUY", order: Date.parse(item.occurred_at), signature: item.signature })),
-      ...activityDistributions.slice(0, 8).map(item => ({ id: activityId("distribution", item), kind: "QQQx RECEIVED", className: "reward", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol?.ember_decimals, unit: "$QQQx", detail: `REWARD ${item.epoch_id}`, order: Date.parse(item.updated_at || "") || 0, signature: item.signature })),
+      ...activityBuys.slice(0, 8).map(item => ({ id: activityId("buy", item), kind: "TOP BLASTED", className: "buy", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol?.ember_decimals, unit: "$RAY", detail: "VERIFIED BUY", order: Date.parse(item.occurred_at), signature: item.signature })),
+      ...activityDistributions.slice(0, 8).map(item => ({ id: activityId("distribution", item), kind: "RAY RECEIVED", className: "reward", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol?.ember_decimals, unit: "$RAY", detail: `EPOCH ${item.epoch_id}`, order: Date.parse(item.updated_at || "") || 0, signature: item.signature })),
       ...crossingActivity
     ].sort((a, b) => b.order - a.order).slice(0, 7);
     const newest = feed.find(item => newActivityIds.has(item.id));
@@ -836,14 +827,15 @@
     leaderboard = leaderboard.filter(account => window.TopBlastIndex.sameSnapshot(account, protocol));
     elements["zone-wallet-count"].textContent = delayed || noPrice ? "—" : formatInteger(protocol.wallets_in_zone);
     elements["top-blast-count"].textContent = formatInteger(protocol.top_blasts_indexed);
-    if (!renderOfficialRewards()) {
-      elements["global-reward-total"].textContent = protocol.total_airdropped_ember_raw === null
-        ? "—"
-        : `${formatDecimal(protocol.total_airdropped_ember_raw, protocol.ember_decimals, 3)} $QQQx`;
-      elements["market-reward-total"].textContent = protocol.total_airdropped_ember_raw === null
-        ? "—"
-        : `${formatDecimal(protocol.total_airdropped_ember_raw, protocol.ember_decimals, 3)} $QQQx`;
-    }
+    const rewardTotal = protocol.total_airdropped_ember_raw === null
+      ? "—"
+      : `${formatDecimal(protocol.total_airdropped_ember_raw, protocol.ember_decimals, 3)} $RAY`;
+    elements["global-reward-total"].textContent = rewardTotal;
+    elements["market-reward-total"].textContent = rewardTotal;
+    const epochTotal = completedEpochCount === null ? "—" : formatInteger(completedEpochCount);
+    elements["total-epoch-count"].textContent = epochTotal;
+    elements["market-epoch-total"].textContent = epochTotal;
+    renderEpochClock();
 
     elements["leaderboard-list"].replaceChildren();
     if (delayed || noPrice || !leaderboard.length) {
@@ -861,7 +853,7 @@
         const wallet = document.createElement("p");
         wallet.textContent = shortWallet(account.wallet);
         const detail = document.createElement("small");
-        detail.textContent = `ENTRY ${formatPrice(account.entry_price_raw)} $QQQx`;
+        detail.textContent = `LOSS ${formatDecimal(account.current_loss_ember_raw, protocol.ember_decimals, 3)} $RAY · ENTRY ${formatPrice(account.entry_price_raw)} $RAY`;
         wallet.append(detail);
         const depth = document.createElement("strong");
         depth.textContent = `-${formatBasisPoints(account.burn_depth_bps)} · BLASTED`;
@@ -877,24 +869,26 @@
     protocolLoading = true;
     try {
       const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "topblast";
-      const [statusRows, accountRows] = await Promise.all([
+      const [statusRows, accountRows, epochCount] = await Promise.all([
         readRows("burned_worker_status", {
           select: "project_id,current_epoch,current_price_raw,current_price_time,burned_decimals,ember_decimals,indexed_through_slot,indexed_through_time,wallets_in_zone,top_blasts_indexed,total_airdropped_ember_raw,updated_at,mode",
           project_id: `eq.${projectId}`,
           limit: "1"
         }),
         readRows("burned_wallet_accounts", {
-          select: "wallet,entry_price_raw,burn_depth_bps,position_status,updated_at",
+          select: "wallet,entry_price_raw,current_loss_ember_raw,burn_depth_bps,position_status,updated_at",
           project_id: `eq.${projectId}`,
-          order: "burn_depth_bps.desc",
+          order: "current_loss_ember_raw.desc",
           limit: "250"
-        })
+        }),
+        readCount("burned_epochs", { project_id: `eq.${projectId}` })
       ]);
       if (!statusRows[0]) {
         elements["data-status"].textContent = "AWAITING INDEX";
         return;
       }
       protocol = statusRows[0];
+      completedEpochCount = epochCount;
       protocol.current_epoch = protocol.current_epoch === null ? null : Number(protocol.current_epoch);
       protocol.burned_decimals = protocol.burned_decimals === null ? null : Number(protocol.burned_decimals);
       protocol.ember_decimals = protocol.ember_decimals === null ? null : Number(protocol.ember_decimals);
@@ -913,9 +907,11 @@
       else setMessage("Enter a wallet to load its verified Topblast position.");
     } catch {
       protocol = null;
+      completedEpochCount = null;
       clearPosition();
       if (!renderMarketChart()) showPendingMarket();
       elements["zone-wallet-count"].textContent = "—";
+      for (const id of ["global-reward-total", "market-reward-total", "total-epoch-count", "market-epoch-total", "next-epoch-time", "market-next-epoch", "wallet-next-epoch"]) elements[id].textContent = "—";
       elements["data-status"].textContent = "INDEX UNAVAILABLE";
       elements["leaderboard-status"].textContent = "INDEX UNAVAILABLE";
       elements["feed-status"].textContent = "INDEX UNAVAILABLE";
@@ -996,6 +992,7 @@
   window.setInterval(() => { if (!document.hidden) loadActivity(); }, 60000);
   window.setInterval(() => { if (!document.hidden) loadMarketData(); }, 30000);
   window.setInterval(() => { if (!document.hidden) loadStonkData(); }, 60000);
+  window.setInterval(renderEpochClock, 1000);
   window.setInterval(() => {
     if (document.hidden || activityBannerPaused || activityBuys.length < 2) return;
     activityBannerIndex = (activityBannerIndex + 1) % activityBuys.length;
