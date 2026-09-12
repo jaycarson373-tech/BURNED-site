@@ -74,6 +74,7 @@
   }
 
   function showPendingMarket() {
+    const awaitingMint = !validSolanaAddress(config.topblastMint || "");
     for (const id of ["price-point", "price-point-halo"]) elements[id].toggleAttribute("hidden", true);
     elements["entry-line"].toggleAttribute("hidden", true);
     document.querySelector(".blast-field").toggleAttribute("hidden", true);
@@ -84,10 +85,10 @@
     elements["price-area"].setAttribute("d", "");
     elements["chart-shell"].dataset.state = "market";
     elements["blast-chart"].setAttribute("aria-label", "Topblast market data loading");
-    elements["chart-mode"].textContent = "CONNECTING TO INDEX";
+    elements["chart-mode"].textContent = awaitingMint ? "AWAITING PRODUCTION MINT" : "CONNECTING TO INDEX";
     elements["zone-status"].textContent = "DATA PENDING";
     delete elements["zone-status"].dataset.state;
-    elements["zone-copy"].textContent = "Waiting for the canonical Topblast price.";
+    elements["zone-copy"].textContent = awaitingMint ? "Production market data activates after the verified launch." : "Waiting for the canonical Topblast price.";
     elements["chart-caption"].textContent = "No unverified price or position data is shown.";
     elements["chart-price"].textContent = "—";
   }
@@ -658,6 +659,16 @@
   }
 
   function renderActivityBanner({ animate = false, newestId = null } = {}) {
+    if (!validSolanaAddress(config.topblastMint || "")) {
+      elements["top-activity"].dataset.state = "stale";
+      elements["top-activity-copy"].textContent = "WAITING FOR THE PRODUCTION TOP BLAST";
+      elements["top-activity-state"].textContent = "MINT NOT CONFIGURED";
+      elements["top-activity-event"].href = "#watch";
+      elements["top-activity-event"].removeAttribute("target");
+      elements["top-activity-event"].removeAttribute("rel");
+      elements["top-activity-event"].setAttribute("aria-label", "Waiting for the production Topblast launch.");
+      return;
+    }
     if (!isPublicIndexConfigured()) {
       elements["top-activity"].dataset.state = "stale";
       elements["top-activity-copy"].textContent = "WAITING FOR THE PRODUCTION INDEX";
