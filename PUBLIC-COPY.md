@@ -40,7 +40,7 @@ The whole thing is trackable onchain.
 
 Watch the price.  
 Watch wallets cross the line.  
-Watch the top get blasted.
+Get paid to Topblast.
 
 Get paid to TOPBLAST.
 

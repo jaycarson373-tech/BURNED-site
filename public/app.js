@@ -5,10 +5,9 @@
   const CHART_WIDTH = 720;
   const CHART_HEIGHT = 420;
   const EPOCH_SECONDS = 900;
-  const TOPBLAST_MINT = "FsiDU4zcDKvuZRk3Ft4RHnRczKh4TdSi5GpdynkCuCTS";
   const EMBER_MINT = "5dvXTZ5qwgafnHtwu3Ls3QrWx1U4LQsFeCuJgkk4QEC6";
   const JUPITER_TOKEN_API = "https://lite-api.jup.ag/tokens/v2/search";
-  const config = window.__TOPBLAST_PUBLIC_CONFIG__ || window.__TOPLAST_PUBLIC_CONFIG__ || {};
+  const config = window.__TOPBLAST_PUBLIC_CONFIG__ || {};
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const elements = Object.fromEntries([
     "blast-chart", "buy-markers", "chart-shell", "chart-mode", "price-line", "price-area", "price-point", "price-point-halo",
@@ -48,25 +47,6 @@
   let activityBannerPaused = false;
   let activityBannerNewId = null;
   let blastAlertTimer = 0;
-  let verifiedDeliveries = [];
-  let deliveryRequest = null;
-
-  function loadVerifiedDeliveries() {
-    if (!deliveryRequest) deliveryRequest = fetch("/verified-deliveries.json", { signal: AbortSignal.timeout(5000) })
-      .then(response => response.ok ? response.json() : [])
-      .then(rows => {
-        const seen = new Set();
-        verifiedDeliveries = Array.isArray(rows) ? rows.filter(row => {
-          if (row.delivery_test !== true || row.finalized !== true || row.cluster !== "mainnet-beta" || row.mint !== EMBER_MINT || row.decimals !== 6 ||
-              !validSolanaAddress(row.wallet) || !/^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(row.signature || "") || !asRaw(row.amount_ember_raw, true) ||
-              !Number.isFinite(Date.parse(row.confirmed_at)) || seen.has(row.signature)) return false;
-          seen.add(row.signature);
-          return true;
-        }) : [];
-      }).catch(() => {});
-    return deliveryRequest;
-  }
-
   function asRaw(value, positive = false) {
     if (typeof value === "number" && !Number.isSafeInteger(value)) return null;
     const text = typeof value === "bigint" ? value.toString() : String(value ?? "");
@@ -101,11 +81,11 @@
     elements["price-area"].setAttribute("d", "");
     elements["chart-shell"].dataset.state = "market";
     elements["blast-chart"].setAttribute("aria-label", "Topblast market data loading");
-    elements["chart-mode"].textContent = "LOADING TEST TOKEN";
+    elements["chart-mode"].textContent = "CONNECTING TO INDEX";
     elements["zone-status"].textContent = "DATA PENDING";
     delete elements["zone-status"].dataset.state;
-    elements["zone-copy"].textContent = "Loading the real Topblast test-token price.";
-    elements["chart-caption"].textContent = "TEST DATA · Waiting for verified market data.";
+    elements["zone-copy"].textContent = "Waiting for the canonical Topblast price.";
+    elements["chart-caption"].textContent = "No unverified price or position data is shown.";
     elements["chart-price"].textContent = "—";
   }
 
@@ -248,14 +228,14 @@
     document.querySelector(".entry-label").hidden = true;
     document.querySelector(".zone-label").hidden = true;
     elements["chart-shell"].dataset.state = "market";
-    elements["chart-mode"].textContent = "LIVE TEST TOKEN";
+    elements["chart-mode"].textContent = "LIVE MARKET";
     elements["chart-price"].textContent = formatUsdPrice(latest.value);
     elements["zone-status"].textContent = "MARKET LIVE";
     delete elements["zone-status"].dataset.state;
-    elements["zone-copy"].textContent = "Real test-token price. Search a wallet for its Blast Zone status.";
-    elements["chart-caption"].textContent = "TEST DATA · Rolling price from Jupiter. Eligibility uses the finalized Topblast index.";
+    elements["zone-copy"].textContent = "Search a wallet to place its tracked entry.";
+    elements["chart-caption"].textContent = "Market price from Jupiter. Eligibility uses the finalized Topblast index.";
     elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
-    elements["blast-chart"].setAttribute("aria-label", "Live rolling Topblast test-token market price from Jupiter");
+    elements["blast-chart"].setAttribute("aria-label", "Live rolling Topblast market price from Jupiter");
     return true;
   }
 
@@ -391,12 +371,12 @@
         if (!row) throw new Error("Jupiter token data is unavailable");
         return row;
       };
-      const [topblast, ember] = await Promise.all([token(TOPBLAST_MINT), token(EMBER_MINT)]);
-      const topblastPrice = Number(topblast.usdPrice);
+      const [topblast, ember] = await Promise.all([config.topblastMint ? token(config.topblastMint) : null, token(EMBER_MINT)]);
+      const topblastPrice = Number(topblast?.usdPrice);
       marketAvailable = Number.isFinite(topblastPrice) && topblastPrice > 0;
       elements["market-topblast-price"].textContent = formatUsdPrice(topblastPrice);
       elements["market-ember-price"].textContent = formatUsdPrice(Number(ember.usdPrice));
-      renderMarketMove(elements["market-topblast-move"], Number(topblast.stats24h?.priceChange));
+      renderMarketMove(elements["market-topblast-move"], Number(topblast?.stats24h?.priceChange));
       renderMarketMove(elements["market-ember-move"], Number(ember.stats24h?.priceChange));
       elements["market-data-status"].textContent = `MARKET LIVE · ${new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(new Date()).toUpperCase()}`;
       if (Number.isFinite(topblastPrice) && topblastPrice > 0) {
@@ -469,15 +449,15 @@
       const row = document.createElement("div");
       row.className = "history-row";
       const epoch = document.createElement("span");
-      epoch.textContent = distribution.delivery_test ? "DELIVERY TEST" : String(distribution.epoch_id);
+      epoch.textContent = String(distribution.epoch_id);
       const amount = document.createElement("strong");
-      amount.textContent = formatDecimal(distribution.amount_ember_raw, distribution.delivery_test ? distribution.decimals : protocol.ember_decimals, 4);
+      amount.textContent = formatDecimal(distribution.amount_ember_raw, protocol.ember_decimals, 4);
       const tx = document.createElement("a");
       tx.href = `https://solscan.io/tx/${encodeURIComponent(distribution.signature)}`;
       tx.target = "_blank";
       tx.rel = "noreferrer";
       tx.textContent = "VERIFY";
-      tx.setAttribute("aria-label", distribution.delivery_test ? "Verify finalized test delivery on Solscan" : `Verify epoch ${distribution.epoch_id} airdrop on Solscan`);
+      tx.setAttribute("aria-label", `Verify epoch ${distribution.epoch_id} airdrop on Solscan`);
       row.append(epoch, amount, tx);
       elements["airdrop-history"].append(row);
     }
@@ -576,9 +556,7 @@
         elements["next-epoch"].textContent = epochCountdown();
         renderIndexedChart();
       } else renderPosition(accountRows[0]);
-      // Finalized payment history remains valid while position indexing catches up.
-      const receipts = verifiedDeliveries.filter(row => row.wallet === selectedWallet && !distributionRows.some(item => item.signature === row.signature));
-      renderHistory([...distributionRows, ...receipts]);
+      renderHistory(distributionRows);
     } catch {
       clearPosition();
       selectedEntryRaw = null;
@@ -691,8 +669,7 @@
     const feed = [
       ...activityBuys.slice(0, 8).map(item => ({ id: activityId("buy", item), kind: "TOP BLASTED", className: "buy", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol?.ember_decimals, unit: "$EMBER", detail: "VERIFIED BUY", order: Date.parse(item.occurred_at), signature: item.signature })),
       ...activityDistributions.slice(0, 8).map(item => ({ id: activityId("distribution", item), kind: "EMBER RECEIVED", className: "ember", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol?.ember_decimals, unit: "$EMBER", detail: `EPOCH ${item.epoch_id}`, order: Number(item.epoch_id) * EPOCH_SECONDS * 1000, signature: item.signature })),
-      ...crossingActivity,
-      ...verifiedDeliveries.filter(row => !activityDistributions.some(item => item.signature === row.signature)).map(item => ({ id: `delivery:${item.signature}`, kind: "EMBER RECEIVED", className: "ember", wallet: item.wallet, amount: item.amount_ember_raw, decimals: item.decimals, unit: "$EMBER", detail: "DELIVERY TEST · FINALIZED", order: Date.parse(item.confirmed_at), signature: item.signature }))
+      ...crossingActivity
     ].sort((a, b) => b.order - a.order).slice(0, 7);
     const newest = feed.find(item => newActivityIds.has(item.id));
     if (newest) {
@@ -744,8 +721,7 @@
     if (!isPublicIndexConfigured() || activityLoading) return;
     activityLoading = true;
     try {
-      await loadVerifiedDeliveries();
-      const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "toplast";
+      const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "topblast";
       const [buyRows, distributionRows] = await Promise.all([
         readRows("toplast_buys", {
           select: "event_id,wallet,amount_toplast_raw,amount_ember_raw,occurred_at,signature",
@@ -834,8 +810,7 @@
     if (!isPublicIndexConfigured() || protocolLoading) return;
     protocolLoading = true;
     try {
-      await loadVerifiedDeliveries();
-      const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "toplast";
+      const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "topblast";
       const [statusRows, accountRows, epochCount] = await Promise.all([
         readRows("burned_worker_status", {
           select: "project_id,current_epoch,current_price_raw,current_price_time,burned_decimals,ember_decimals,indexed_through_slot,indexed_through_time,wallets_in_zone,top_blasts_indexed,total_airdropped_ember_raw,updated_at,mode",
@@ -924,6 +899,12 @@
   if (/^https:\/\/(?:www\.)?x\.com\/[A-Za-z0-9_]{1,15}\/?$/.test(config.xUrl || "")) {
     for (const link of document.querySelectorAll("[data-x-link]")) {
       link.href = config.xUrl;
+      link.hidden = false;
+    }
+  }
+  if (/^https:\/\/dexscreener\.com\/solana\/[1-9A-HJ-NP-Za-km-z]{32,44}\/?$/.test(config.dexscreenerUrl || "")) {
+    for (const link of document.querySelectorAll("[data-dexscreener-link]")) {
+      link.href = config.dexscreenerUrl;
       link.hidden = false;
     }
   }

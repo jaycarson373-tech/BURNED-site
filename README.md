@@ -17,12 +17,13 @@ Add these values to the Production environment:
 ```text
 PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_PUBLIC_KEY
-TOPBLAST_PROJECT_ID=toplast
+TOPBLAST_PROJECT_ID=topblast
 ```
 
-The project ID remains `toplast` for existing indexed rows. Only the Supabase publishable key belongs here. Never add the Supabase secret key, Helius key, treasury key, or signer configuration to Vercel.
+The production project ID is `topblast`. Historical staging rows retain their legacy internal project ID. Only the Supabase publishable key belongs here. Never add the Supabase secret key, Helius key, treasury key, or signer configuration to Vercel.
 
-Set `PUBLIC_X_URL` to the official `https://x.com/` profile URL to enable the header and footer X links. Both stay hidden until a profile is configured. The footer Dexscreener link points to the verified pool currently used for testing; update it with the verified production pool at launch.
+Set `PUBLIC_X_URL` to the official `https://x.com/` profile URL to enable the header and footer X links. Both stay hidden until a profile is configured.
+Set `PUBLIC_TOPBLAST_MINT` and `PUBLIC_DEXSCREENER_URL` only after the production mint and pool are verified. Until then, token-specific market fields and the Dexscreener link remain unavailable instead of exposing staging addresses.
 
 ## Local preview
 
