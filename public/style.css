@@ -195,6 +195,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .header-link:hover { border-color: var(--hot); background: var(--hot); transform: translateY(-1px); }
 .social-x { min-width: 44px; justify-content: center; padding: .7rem; font-size: 1rem; }
+.ca-copy { max-width: 164px; overflow: hidden; font: inherit; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 
 .hero {
   min-height: calc(100svh - 114px);
@@ -667,6 +668,7 @@ h2 { margin: 1rem 0 0; font-size: clamp(3rem, 5vw, 5.2rem); font-weight: 650; li
   .site-header nav { gap: .5rem; }
   .site-header .nav-link { display: none; }
   .header-link { padding: .65rem .72rem; font-size: .62rem; }
+  .ca-copy { max-width: 54px; }
   .hero { gap: 2.8rem; padding-block: 2.5rem 5rem; }
   .hero-mark { top: -1.2rem; right: -.5rem; width: 88px; opacity: .18; }
   .hero .eyebrow { max-width: calc(100% - 76px); font-size: .62rem; }

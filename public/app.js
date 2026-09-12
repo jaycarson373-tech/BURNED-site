@@ -19,7 +19,7 @@
     "market-topblast-price", "market-topblast-move", "market-ray-price", "market-ray-move",
     "market-reward-total", "top-activity", "top-activity-event", "top-activity-copy", "top-activity-state",
     "activity-announcer", "market-epoch-total", "market-next-epoch", "total-epoch-count", "next-epoch-time",
-    "wallet-next-epoch"
+    "wallet-next-epoch", "hero-next-epoch", "copy-ca"
   ].map(id => [id, document.getElementById(id)]));
 
   let protocol = null;
@@ -300,9 +300,9 @@
   }
 
   function renderEpochClock() {
-    const targets = [elements["market-next-epoch"], elements["next-epoch-time"], elements["wallet-next-epoch"]];
+    const targets = [elements["market-next-epoch"], elements["next-epoch-time"], elements["wallet-next-epoch"], elements["hero-next-epoch"]];
     if (!protocol || !window.TopBlastIndex.fresh(protocol)) {
-      for (const target of targets) target.textContent = "—";
+      for (const target of targets) target.textContent = target===elements["hero-next-epoch"] ? "~15 MIN" : "—";
       return;
     }
     const now = Math.floor(Date.now() / 1000);
@@ -968,6 +968,18 @@
     }
   }
   if (validSolanaAddress(config.topblastMint || "")) {
+    elements["copy-ca"].hidden = false;
+    elements["copy-ca"].textContent = `CA ${shortWallet(config.topblastMint)}`;
+    elements["copy-ca"].setAttribute("aria-label", "Copy Topblast contract address");
+    elements["copy-ca"].addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(config.topblastMint);
+        elements["copy-ca"].textContent = "CA COPIED";
+        window.setTimeout(() => { elements["copy-ca"].textContent = `CA ${shortWallet(config.topblastMint)}`; }, 1600);
+      } catch {
+        elements["copy-ca"].textContent = "COPY FAILED";
+      }
+    });
     for (const link of document.querySelectorAll("[data-buy-link]")) {
       link.href = `https://www.stonkfun.xyz/token/${encodeURIComponent(config.topblastMint)}`;
       link.target = "_blank";
