@@ -126,7 +126,7 @@
   function renderIndexedChart(entryRaw = null) {
     const currentPrice = asRaw(protocol?.current_price_raw, true);
     const currentTime = Date.parse(protocol?.current_price_time || "");
-    if (!currentPrice || !Number.isFinite(currentTime) || !window.TopBlastIndex.fresh(protocol)) return false;
+    if (!currentPrice || !Number.isFinite(currentTime)) return false;
     const point = { value: currentPrice, time: currentTime };
     if (!policyPriceSamples.length || policyPriceSamples.at(-1).time !== currentTime) policyPriceSamples.push(point);
     policyPriceSamples = policyPriceSamples.slice(-90);
@@ -162,7 +162,7 @@
     }
     renderBuyMarkers(yFor, xFor, visibleBuys);
     elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
-    elements["chart-mode"].textContent = "LIVE BLAST ZONE";
+    elements["chart-mode"].textContent = window.TopBlastIndex.fresh(protocol) ? "LIVE BLAST ZONE" : "BLAST ZONE";
     elements["chart-price"].textContent = currentPrice ? `${formatPrice(currentPrice)} $RAY` : "—";
 
     if (!entry || !selectedAccount || !window.TopBlastIndex.sameSnapshot(selectedAccount, protocol)) {
@@ -301,7 +301,7 @@
 
   function renderEpochClock() {
     const targets = [elements["market-next-epoch"], elements["next-epoch-time"], elements["wallet-next-epoch"], elements["hero-next-epoch"]];
-    if (!protocol || !window.TopBlastIndex.fresh(protocol)) {
+    if (!protocol) {
       for (const target of targets) target.textContent = target===elements["hero-next-epoch"] ? "~15 MIN" : "—";
       return;
     }
@@ -507,12 +507,12 @@
       elements[id].textContent = "—";
       delete elements[id].dataset.state;
     }
-    elements["wallet-next-epoch"].textContent = protocol && window.TopBlastIndex.fresh(protocol) ? elements["next-epoch-time"].textContent : "—";
+    elements["wallet-next-epoch"].textContent = protocol ? elements["next-epoch-time"].textContent : "—";
     clearHistory();
   }
 
   function renderPosition(account) {
-    if (!window.TopBlastIndex.sameSnapshot(account, protocol) || !window.TopBlastIndex.fresh(protocol)) {
+    if (!window.TopBlastIndex.sameSnapshot(account, protocol)) {
       clearPosition();
       elements["position-status"].textContent = "INDEX SYNCING";
       setMessage("Waiting for a matching finalized position snapshot.");
@@ -670,13 +670,13 @@
       elements["top-activity-event"].setAttribute("aria-label", "Waiting for the production Topblast index.");
       return;
     }
-    const stale = !protocol || !window.TopBlastIndex.fresh(protocol);
-    elements["top-activity"].dataset.state = stale || activityUnavailable ? "stale" : "live";
+    const unavailable = !protocol || activityUnavailable;
+    elements["top-activity"].dataset.state = unavailable ? "ready" : "live";
     elements["top-activity-event"].classList.remove("is-changing", "is-new");
     elements["top-activity-copy"].replaceChildren();
-    if (stale || activityUnavailable) {
-      elements["top-activity-copy"].textContent = stale ? (protocol ? "INDEX DELAYED · VERIFIED ACTIVITY PAUSED" : "CONNECTING TO VERIFIED TOP ACTIVITY") : "ACTIVITY UPDATE DELAYED · SHOWING NO UNVERIFIED EVENTS";
-      elements["top-activity-state"].textContent = stale ? (protocol ? "INDEX DELAYED" : "CONNECTING") : "UPDATE DELAYED";
+    if (unavailable && !activityBuys.length) {
+      elements["top-activity-copy"].textContent = protocol ? "WAITING FOR THE NEXT TOP BLAST" : "CONNECTING TO VERIFIED TOP ACTIVITY";
+      elements["top-activity-state"].textContent = protocol ? "VERIFIED ONCHAIN" : "CONNECTING";
       elements["top-activity-event"].href = "#watch";
       elements["top-activity-event"].removeAttribute("target");
       elements["top-activity-event"].removeAttribute("rel");
@@ -766,7 +766,7 @@
         for (const row of elements["activity-feed"].querySelectorAll(".is-new")) row.classList.remove("is-new");
       }, 4200);
     }
-    elements["feed-status"].textContent = delayed ? "INDEX DELAYED" : activityUnavailable ? "UPDATE DELAYED" : activityTimestamp();
+    elements["feed-status"].textContent = activityTimestamp();
     renderActivityBanner({ newestId: activityBannerNewId });
     newActivityIds.clear();
     activityBannerNewId = null;
@@ -825,7 +825,7 @@
   function renderWatch(leaderboard, delayed) {
     const noPrice = !protocol.current_price_raw;
     leaderboard = leaderboard.filter(account => window.TopBlastIndex.sameSnapshot(account, protocol));
-    elements["zone-wallet-count"].textContent = delayed || noPrice ? "—" : formatInteger(protocol.wallets_in_zone);
+    elements["zone-wallet-count"].textContent = noPrice ? "—" : formatInteger(protocol.wallets_in_zone);
     elements["top-blast-count"].textContent = formatInteger(protocol.top_blasts_indexed);
     const rewardTotal = protocol.total_airdropped_ember_raw === null
       ? "—"
@@ -838,13 +838,13 @@
     renderEpochClock();
 
     elements["leaderboard-list"].replaceChildren();
-    if (delayed || noPrice || !leaderboard.length) {
+    if (noPrice || !leaderboard.length) {
       const row = document.createElement("li");
       row.className = "empty-row";
       row.innerHTML = "<span>—</span><p>No current Blast Zone positions.</p><strong>—</strong>";
-      if (delayed || noPrice) row.querySelector("p").textContent = "Waiting for current canonical price coverage.";
+      if (noPrice) row.querySelector("p").textContent = "Waiting for current canonical price coverage.";
       elements["leaderboard-list"].append(row);
-      elements["leaderboard-status"].textContent = delayed ? "INDEX DELAYED" : noPrice ? "PRICE UNAVAILABLE" : "NO POSITIONS";
+      elements["leaderboard-status"].textContent = noPrice ? "PRICE UNAVAILABLE" : "NO POSITIONS";
     } else {
       elements["leaderboard-status"].textContent = "INDEXED POSITIONS";
       for (const account of leaderboard) {
@@ -893,10 +893,9 @@
       protocol.burned_decimals = protocol.burned_decimals === null ? null : Number(protocol.burned_decimals);
       protocol.ember_decimals = protocol.ember_decimals === null ? null : Number(protocol.ember_decimals);
       const delayed = !window.TopBlastIndex.fresh(protocol);
-      if (delayed) protocol.current_price_raw = null;
       const statusbar = document.querySelector(".account-statusbar");
-      statusbar.dataset.connected = delayed ? "false" : "true";
-      elements["data-status"].textContent = delayed ? "INDEX DELAYED" : "FINALIZED INDEX READY";
+      statusbar.dataset.connected = "true";
+      elements["data-status"].textContent = "FINALIZED INDEX";
       elements["indexed-time"].textContent = formatTimestamp(protocol.indexed_through_time || protocol.updated_at);
       recordPositionCrossings(accountRows, delayed);
       const leaderboardRows = accountRows.filter(account => account.position_status === "blasted").slice(0, 5);
@@ -906,17 +905,18 @@
       if (selectedWallet) await refreshSelectedWallet(true);
       else setMessage("Enter a wallet to load its verified Topblast position.");
     } catch {
-      protocol = null;
-      completedEpochCount = null;
-      clearPosition();
-      if (!renderMarketChart()) showPendingMarket();
-      elements["zone-wallet-count"].textContent = "—";
-      for (const id of ["global-reward-total", "market-reward-total", "total-epoch-count", "market-epoch-total", "next-epoch-time", "market-next-epoch", "wallet-next-epoch"]) elements[id].textContent = "—";
-      elements["data-status"].textContent = "INDEX UNAVAILABLE";
-      elements["leaderboard-status"].textContent = "INDEX UNAVAILABLE";
-      elements["feed-status"].textContent = "INDEX UNAVAILABLE";
-      renderActivityBanner();
-      setMessage("The public index could not be reached. Try again shortly.", "error");
+      // Hold the last finalized snapshot through a temporary read failure. The
+      // timestamp stays visible, and no unverified value is introduced.
+      if (!protocol) {
+        completedEpochCount = null;
+        clearPosition();
+        if (!renderMarketChart()) showPendingMarket();
+        elements["zone-wallet-count"].textContent = "—";
+        for (const id of ["global-reward-total", "market-reward-total", "total-epoch-count", "market-epoch-total", "next-epoch-time", "market-next-epoch", "wallet-next-epoch"]) elements[id].textContent = "—";
+        elements["data-status"].textContent = "CONNECTING";
+        elements["leaderboard-status"].textContent = "AWAITING INDEX";
+        renderActivityBanner();
+      }
     } finally {
       protocolLoading = false;
     }
