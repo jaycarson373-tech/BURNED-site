@@ -29,7 +29,7 @@ for (const required of [
 for (const match of html.matchAll(/href="#([^"]+)"/g)) {
   if (!html.includes(`id="${match[1]}"`)) throw new Error(`Broken anchor: ${match[1]}`);
 }
-for (const name of ["style.css", "app.js", "runtime-config.js", "topblast-logo.png", "favicon.png", "apple-touch-icon.png"]) {
+for (const name of ["style.css", "app.js", "runtime-config.js", "topblast-logo-qqqx.png", "favicon-qqqx.png", "apple-touch-icon-qqqx.png"]) {
   if (!(await stat(join("public", name))).size) throw new Error(`Empty asset: ${name}`);
 }
 if (/[←-⇿➔-➿]/u.test(html)) throw new Error("Arrow glyphs are not allowed");
@@ -44,7 +44,7 @@ if (/COPY TEST CA|TEST CONTRACT|TEST TOKEN|TEST DATA|DELIVERY TEST|verified-deli
   throw new Error("Staging data or test addresses must not ship in the public site");
 }
 if (/\bMET\b|ASHBACK/.test(html)) throw new Error("Stale token branding or pairing");
-for (const name of ["topblast-logo.png", "favicon.png", "apple-touch-icon.png"]) {
+for (const name of ["topblast-logo-qqqx.png", "favicon-qqqx.png", "apple-touch-icon-qqqx.png"]) {
   const image = await readFile(join("public", name));
   if (image.length < 26 || image[25] !== 6) throw new Error(`${name} must be an RGBA PNG with transparency`);
 }
