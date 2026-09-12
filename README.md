@@ -6,7 +6,7 @@ The public Vercel site for $TOPBLAST / $RAY on Stonk Fun.
 
 The hero contains the live TOP BLAST chart and Blast Zone. Without a verified production index it shows honest unavailable states and no sample wallet, price, reward, or transaction data. With the public index connected it shows canonical RAY-denominated prices, verified buys, tracked entries, Blast Zone positions, loss-ranked wallets, epoch metrics, wallet history, and confirmed RAY airdrop transactions.
 
-TOP BLAST uses Stonk Fun Standard Mode with the 2% pool tier. Stonk Fun assigns 1.5% of each trade to the creator fee position and 0.5% to the platform. The custom reward engine credits only finalized RAY fee claims, allocates 80% to eligible underwater positions by measured unrealized RAY loss, and retains 20% in treasury. Epochs close every 900 seconds; onchain confirmation may follow later.
+TOP BLAST requires a verified 2% reward fee paid in RAY. The custom reward engine credits only finalized RAY fee receipts, allocates 80% to eligible underwater positions by measured unrealized RAY loss, and retains 20% in treasury. Epochs close every 900 seconds; onchain confirmation may follow later. The worker stays in standby until the production pool proves this fee path onchain.
 
 ## Production configuration
 

@@ -11,7 +11,7 @@ for (const required of [
   "$TOPBLAST / $RAY",
   "Blast Zone",
   "weighted average entry",
-  "POOL FEE",
+  "REWARD FEE",
   "2%",
   "~15 MIN",
   "STONK FUN",
