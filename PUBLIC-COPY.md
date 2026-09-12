@@ -2,45 +2,28 @@
 
 ## X bio
 
-Get paid to TOPBLAST.\
-Below entry. Earn $EMBER.  
-$TOPBLAST × $EMBER on Meteora.
+Get paid to TOPBLAST.
+Track the line. Enter the Blast Zone.
+Earn automatic $QQQx holder rewards.
+$TOPBLAST × $QQQx on Stonk Fun.
 
 ## Project description
 
-Get paid to TOPBLAST. Buy $TOPBLAST with $EMBER to establish your entry. Fall below it and you enter the Blast Zone, where eligible positions share 80% of verified $EMBER fee receipts approximately every 15 minutes. Rewards are weighted by measured loss. Treasury retains 20%. Verified buys count. Selling or sending excludes that wallet for the epoch.
+TOP BLAST is paired with QQQx on Stonk Fun. Every verified buy establishes your tracked average entry. Fall below it and enter the Blast Zone. A permanent 3% Token-2022 transfer tax is distributed automatically to holders in QQQx.
 
 ## Live thesis
 
 TOP BLAST is live.
 
-Everyone says not to buy the top.
+Buy $TOPBLAST with $QQQx.
 
-We built a token that rewards you when you do.
+Your verified average entry becomes the line.
 
-$TOPBLAST × $EMBER
+Fall below it and you enter the Blast Zone.
 
-Buy TOP BLAST and your verified average entry becomes the line.
+Stonk Fun's 3% transfer tax distributes QQQx automatically to holders.
 
-Price falls below your entry?
-
-You got blasted.
-
-You're now in the Blast Zone, where eligible positions share 80% of verified $EMBER fee receipts approximately every 15 minutes.
-
-Rewards are weighted by measured loss. Treasury retains 20%.
-
-Buy again and your weighted average entry updates.
-
-Transfers don't create an entry.
-
-Sell or send and that wallet is excluded for the epoch.
-
-The whole thing is trackable onchain.
-
-Watch the price.  
-Watch wallets cross the line.  
-Get paid to Topblast.
+The Blast Zone tracks your position. Protocol rewards are holder-wide.
 
 Get paid to TOPBLAST.
 

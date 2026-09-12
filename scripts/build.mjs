@@ -8,20 +8,20 @@ for (const required of [
   "<title>Topblast",
   "GET PAID TO",
   "Topblast.",
-  "$TOPBLAST / $EMBER",
+  "$TOPBLAST / $QQQx",
   "Blast Zone",
   "weighted average entry",
-  "BASE FEE",
+  "REWARD TAX",
   "3%",
-  "approximately every 15 minutes",
+  "AUTOMATIC",
+  "STONK FUN",
   'id="blast-zone"',
   'id="watch"',
   'id="account"',
   'id="how-it-works"',
   'id="rules"',
-  'id="airdrop-history"',
+  'id="reward-history"',
   'id="market-topblast-price"',
-  'id="market-next-epoch"',
   'id="leaderboard-title">Topblast LEADERBOARD'
 ]) {
   if (!html.includes(required)) throw new Error(`Missing site content: ${required}`);
@@ -34,6 +34,8 @@ for (const name of ["style.css", "app.js", "runtime-config.js", "topblast-logo.p
 }
 if (/[←-⇿➔-➿]/u.test(html)) throw new Error("Arrow glyphs are not allowed");
 if (/\b(?:TOPLAST|BURNED|BURN ZONE|\$TOPLAST|\$BURNED)\b/i.test(html)) throw new Error("Stale public branding");
+const visibleText = html.replace(/<[^>]+>/g, " ");
+if (/\$EMBER|\bEMBER\b|METEORA/i.test(visibleText)) throw new Error("Stale public pairing or platform branding");
 if (/ecosystem|flywheel|revolutionary|next-generation|community-powered|seamless|innovative|game-changing|redefining|unlock|future of finance/i.test(html)) {
   throw new Error("Banned filler copy found");
 }

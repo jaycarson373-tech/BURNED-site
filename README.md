@@ -1,36 +1,29 @@
 # TOP BLAST site
 
-The public Vercel site for $TOPBLAST / $EMBER.
+The public Vercel site for $TOPBLAST / $QQQx on Stonk Fun.
 
-[Import this repository into Vercel](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fjaycarson373-tech%2FBURNED-site)
+## Product behavior
 
-The hero contains the TOP BLAST chart and Blast Zone. Without a connected index it displays a labeled mechanic preview and no live values. With the public Supabase index connected it displays finalized prices, verified buys, tracked Blast Zone wallets, wallet positions, and settled $EMBER airdrops.
+The hero contains the TOP BLAST chart and Blast Zone. Without a connected production index it displays honest unavailable states and no sample wallet, price, reward, or transaction data. With the public index connected it displays canonical prices, verified buys, tracked entries, Blast Zone positions, wallet history, and confirmed QQQx reward transactions.
 
-The database still uses legacy table and field names for migration compatibility. Those identifiers do not change public branding or token behavior.
+Stonk Fun Reward Mode uses a permanent 3% Token-2022 transfer tax. The protocol distributes rewards automatically in QQQx to holders. Blast Zone tracking is a separate product view and does not determine protocol reward eligibility.
 
-## Vercel settings
+## Production configuration
 
-Keep the repository root as the Root Directory. `vercel.json` supplies the build command and `dist` output directory.
+Configure these variables in Vercel:
 
-Add these values to the Production environment:
+- `PUBLIC_SUPABASE_URL`
+- `PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `TOPBLAST_PROJECT_ID=topblast`
+- `PUBLIC_TOPBLAST_MINT` after the production mint is verified
+- `PUBLIC_DEXSCREENER_URL` after the production pool exists
+- `PUBLIC_X_URL=https://x.com/topblastdotxyz`
 
-```text
-PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
-PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_PUBLIC_KEY
-TOPBLAST_PROJECT_ID=topblast
-```
+Never configure a private key or Supabase service-role key in Vercel.
 
-The production project ID is `topblast`. Historical staging rows retain their legacy internal project ID. Only the Supabase publishable key belongs here. Never add the Supabase secret key, Helius key, treasury key, or signer configuration to Vercel.
-
-Set `PUBLIC_X_URL` to the official `https://x.com/` profile URL to enable the header and footer X links. Both stay hidden until a profile is configured.
-Set `PUBLIC_TOPBLAST_MINT` and `PUBLIC_DEXSCREENER_URL` only after the production mint and pool are verified. Until then, token-specific market fields and the Dexscreener link remain unavailable instead of exposing staging addresses.
-
-## Local preview
+## Local checks
 
 ```sh
-npm ci --ignore-scripts --no-audit --no-fund
+npm test
 npm run build
-npm run dev
 ```
-
-The backend worker and Supabase schema live in the private worker repository. Public launch copy is in `PUBLIC-COPY.md`.
