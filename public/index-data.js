@@ -1,6 +1,12 @@
 // Preserve PostgREST numeric(78,0) atomic values before JSON number conversion.
 // String tokens are passed through unchanged; large integer tokens become strings.
 window.TopBlastIndex = Object.freeze({
+  matchesMarket(status, config) {
+    return Boolean(status && config?.indexVerified === true && config.topblastMint && config.rewardMint && status.project_id === config.projectId && status.burned_mint === config.topblastMint && status.ember_mint === config.rewardMint);
+  },
+  payoutClockActive(status, config, now = Date.now()) {
+    return config?.rewardsActive === true && status?.mode === 'send' && this.matchesMarket(status, config) && this.fresh(status, now);
+  },
   crossing(previous, current) {
     const before = previous?.position_status;
     const after = current?.position_status;

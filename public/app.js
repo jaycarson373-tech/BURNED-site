@@ -328,7 +328,7 @@
 
   function renderEpochClock() {
     const targets = [elements["market-next-epoch"], elements["next-epoch-time"], elements["wallet-next-epoch"], elements["hero-next-epoch"]];
-    if (!protocol || config.rewardsActive !== true) {
+    if (!window.TopBlastIndex.payoutClockActive(protocol, config)) {
       for (const target of targets) target.textContent = target===elements["hero-next-epoch"] ? "~15 MIN" : "—";
       return;
     }
@@ -770,7 +770,7 @@
   }
 
   async function loadActivity() {
-    if (!isPublicIndexConfigured() || activityLoading) return;
+    if (!isPublicIndexConfigured() || !window.TopBlastIndex.matchesMarket(protocol, config) || activityLoading) return;
     activityLoading = true;
     try {
       const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "burned-ember";
@@ -868,7 +868,7 @@
       const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "burned-ember";
       const [statusRows, accountRows, epochCount] = await Promise.all([
         readRows("burned_worker_status", {
-          select: "project_id,current_epoch,current_price_raw,current_price_time,burned_decimals,ember_decimals,indexed_through_slot,indexed_through_time,wallets_in_zone,top_blasts_indexed,total_airdropped_ember_raw,updated_at,mode",
+          select: "project_id,burned_mint,ember_mint,current_epoch,current_price_raw,current_price_time,burned_decimals,ember_decimals,indexed_through_slot,indexed_through_time,wallets_in_zone,top_blasts_indexed,total_airdropped_ember_raw,updated_at,mode",
           project_id: `eq.${projectId}`,
           limit: "1"
         }),
@@ -883,6 +883,13 @@
       if (!statusRows[0]) {
         elements["data-status"].textContent = "AWAITING INDEX";
         return;
+      }
+      if (!window.TopBlastIndex.matchesMarket(statusRows[0], config)) {
+        protocol = null;
+        activityBuys = []; activityDistributions = []; recentBuys = []; crossingActivity = [];
+        policyPriceSamples = []; selectedEntryRaw = null; selectedAccount = null;
+        renderActivityFeed();
+        throw new Error("Public index mint identity does not match the configured BURNED / EMBER market");
       }
       protocol = statusRows[0];
       completedEpochCount = epochCount;
