@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="/style.css">
   <script src="/runtime-config.js" defer></script>
   <script src="/index-data.js" defer></script>
+  <script src="/reward-cycle.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
@@ -149,6 +150,11 @@
           <div><dt>TOTAL EPOCHS</dt><dd id="total-epoch-count">—</dd></div>
           <div><dt>NEXT EPOCH</dt><dd id="next-epoch-time">—</dd></div>
         </dl>
+        <div class="reward-cycle" aria-label="Reward cycle">
+          <span><b id="reward-cycle-state" role="status">REWARDS PAUSED</b><small>15-minute epochs · confirmation can follow later</small></span>
+          <span class="reward-cycle-next">NEXT SNAPSHOT <strong id="reward-cycle-clock">—</strong></span>
+          <a id="reward-cycle-proof" target="_blank" rel="noopener noreferrer" hidden>VERIFY LAST SENT</a>
+        </div>
         <div class="watch-grid">
           <section class="leaderboard-panel" aria-labelledby="leaderboard-title">
             <div class="panel-head"><h3 id="leaderboard-title">IN THE BURN ZONE</h3><span id="leaderboard-status">AWAITING INDEX</span></div>

@@ -327,17 +327,44 @@
     return `INDEXED ${new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(date).toUpperCase()}`;
   }
 
+  let rewardCycle = {loaded:false};
+  let cycleLoading = false;
+  let sentVisibleUntil = 0;
+  let priorSentEpoch = null;
+  function cycleView() {
+    return window.BurnedRewardCycle.describe({...rewardCycle, active:window.TopBlastIndex.payoutClockActive(protocol, config),currentEpoch:protocol?.current_epoch});
+  }
+  async function loadRewardCycle() {
+    if (cycleLoading || !window.TopBlastIndex.matchesMarket(protocol, config)) return;
+    cycleLoading = true;
+    const snapshot = protocol;
+    try {
+      const epochs = await readRows("burned_epochs", {select:"epoch_id,total_reward_raw,eligible_count,reason",project_id:`eq.${snapshot.project_id}`,order:"epoch_id.desc",limit:"1"});
+      const epoch = epochs[0] || null;
+      const batches = epoch ? await readRows("burned_batches", {select:"batch_id,epoch_id,kind,status,signature,total_reward_raw",project_id:`eq.${snapshot.project_id}`,epoch_id:`eq.${epoch.epoch_id}`,kind:"eq.payout",limit:"1000"}) : [];
+      if (protocol !== snapshot) return;
+      const previous = cycleView();
+      rewardCycle = {loaded:true,epoch,batches,observedAt:Date.now()};
+      const next = cycleView();
+      if (next.phase === "sent" && next.epoch !== priorSentEpoch) {
+        // Only animate a transition actually observed here, never historical data on load.
+        if (previous.epoch === next.epoch && ["queued","distributing","confirming"].includes(previous.phase)) sentVisibleUntil = Date.now() + 15000;
+        priorSentEpoch = next.epoch;
+      }
+    } catch { rewardCycle = {loaded:false}; }
+    finally { cycleLoading = false; renderEpochClock(); }
+  }
   function renderEpochClock() {
     const targets = [elements["market-next-epoch"], elements["next-epoch-time"], elements["wallet-next-epoch"], elements["hero-next-epoch"]];
-    if (!window.TopBlastIndex.payoutClockActive(protocol, config)) {
-      for (const target of targets) target.textContent = target===elements["hero-next-epoch"] ? "~15 MIN" : "—";
-      return;
-    }
-    const now = Math.floor(Date.now() / 1000);
-    const remaining = 900 - (now % 900);
-    const minutes = Math.floor(remaining / 60).toString().padStart(2, "0");
-    const seconds = (remaining % 60).toString().padStart(2, "0");
-    for (const target of targets) target.textContent = `${minutes}:${seconds}`;
+    const view = cycleView();
+    for (const target of targets) target.textContent = view.phase === "paused" && target === elements["hero-next-epoch"] ? "~15 MIN" : view.countdown;
+    const bar = document.querySelector(".reward-cycle");
+    bar.dataset.phase = view.phase;
+    document.getElementById("reward-cycle-state").textContent = view.phase === "sent" && Date.now() >= sentVisibleUntil ? "NEXT SNAPSHOT · LAST EPOCH SENT" : view.label;
+    document.getElementById("reward-cycle-clock").textContent = view.countdown;
+    const proof = document.getElementById("reward-cycle-proof");
+    proof.hidden = !view.signature;
+    if (view.signature) proof.href = `https://solscan.io/tx/${view.signature}`;
   }
 
   function shortWallet(wallet) {
@@ -902,6 +929,7 @@
       }
       protocol = statusRows[0];
       completedEpochCount = epochCount;
+      loadRewardCycle();
       protocol.current_epoch = protocol.current_epoch === null ? null : Number(protocol.current_epoch);
       protocol.burned_decimals = protocol.burned_decimals === null ? null : Number(protocol.burned_decimals);
       protocol.ember_decimals = protocol.ember_decimals === null ? null : Number(protocol.ember_decimals);
