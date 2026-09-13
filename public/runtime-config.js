@@ -1,8 +1,1 @@
-window.__TOPBLAST_PUBLIC_CONFIG__ = Object.freeze({
-  supabaseUrl: "",
-  supabaseKey: "",
-  projectId: "topblast",
-  xUrl: "",
-  topblastMint: "",
-  dexscreenerUrl: ""
-});
+window.__BURNED_PUBLIC_CONFIG__ = Object.freeze({supabaseUrl:"",supabaseKey:"",projectId:"burned-ember",xUrl:"",topblastMint:"",rewardMint:"",dexscreenerUrl:"",indexVerified:false,rewardsActive:false});

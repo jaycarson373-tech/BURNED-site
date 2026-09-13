@@ -1,29 +1,36 @@
-# TOP BLAST site
+# BURNED site
 
-The public Vercel site for $TOPBLAST / $RAY on Stonk Fun.
+The BURNED / EMBER rebrand of the existing site. The structure, wallet lookup, canonical entry display and activity feed are preserved. Warm ivory, charcoal and a new orange flame identity replace the prior navy comet branding.
 
-## Product behavior
+## Current state
 
-The hero contains the live TOP BLAST chart and Blast Zone. Without a verified production index it shows honest unavailable states and no sample wallet, price, reward, or transaction data. With the public index connected it shows canonical RAY-denominated prices, verified buys, tracked entries, Blast Zone positions, loss-ranked wallets, epoch metrics, wallet history, and confirmed RAY airdrop transactions.
+The website is a relaunch preview. Payouts remain stopped. No worker, contracts, signing keys, balances, cost-basis math or reward allocation rules were changed in this frontend pass. The intended cadence remains approximately 15 minutes, not a promise of an active scheduler.
 
-TOP BLAST requires a verified 2% reward fee paid in RAY. The custom reward engine credits only finalized RAY fee receipts, allocates 80% to eligible underwater positions by measured unrealized RAY loss, and retains 20% in treasury. Epochs close every 900 seconds; onchain confirmation may follow later. The worker stays in standby until the production pool proves this fee path onchain.
+The Burn Zone has a manually controlled, labelled mechanic illustration. It does not populate wallet data, price history, reward totals or eligibility. Live values stay unavailable until the new market is verified. Prior TOPBLAST/RAY data is never relabelled as BURNED/EMBER.
 
-## Production configuration
+## New public configuration
 
-Configure these variables in Vercel:
+These BURNED-specific variables deliberately do not inherit old TOPBLAST settings:
 
-- `PUBLIC_SUPABASE_URL`
-- `PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `TOPBLAST_PROJECT_ID=topblast`
-- `PUBLIC_TOPBLAST_MINT` after the production mint is verified
-- `PUBLIC_DEXSCREENER_URL` after the production pool exists
-- `PUBLIC_X_URL=https://x.com/topblastdotxyz`
+- `PUBLIC_BURNED_MINT`: verified new BURNED Solana mint
+- `PUBLIC_BURNED_EMBER_MINT`: verified EMBER quote/reward mint
+- `PUBLIC_BURNED_SUPABASE_URL`: isolated public index endpoint
+- `PUBLIC_BURNED_SUPABASE_KEY`: publishable or anon key only
+- `BURNED_PROJECT_ID=burned-ember`: isolated dataset matching the worker
+- `BURNED_INDEX_VERIFIED=true`: only after mint, pool, quote, index and canonical price checks pass
+- `BURNED_REWARDS_ACTIVE=true`: display flag only, set only after payouts are actually running; it does not enable the worker
+- `PUBLIC_BURNED_X_URL`: verified new profile, optional
 
-Never configure a signing secret or Supabase service-role key in Vercel.
+Never put private keys or a service-role key in public build variables. Internal `topblastMint`, `TopBlastIndex`, DOM selectors and legacy `toplast_*` database table names remain compatibility identifiers. They do not change economic state.
 
-## Local checks
+## Remaining relaunch work
 
-```sh
-npm test
-npm run build
-```
+Verify the new token metadata, Ember pool and fee path. Configure a separate worker/index namespace and verify matching frontend price and entry. Prove a small real EMBER reward cycle before enabling recurring payouts. Existing RAY payouts are historical and do not prove this new launch is configured.
+
+## Checks
+
+`npm test` and `npm run build`. Browser QA covers responsive layout, wallet input, mechanic preview switching, unavailable values and no client errors. No chain transaction is part of this rebrand.
+
+## Assets
+
+`public/burned-logo.png`, `public/favicon-burned.png`, `public/apple-touch-icon-burned.png`, `public/burned-banner.png`. The banner is a social asset and OpenGraph image; no large banner section was added to the page.

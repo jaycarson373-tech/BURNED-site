@@ -1,37 +1,32 @@
-# TOP BLAST public copy
+# BURNED public copy
 
 ## X bio
 
-Get paid to Topblast.
-Buy the top. Set the line.
-Below entry. Earn $RAY.
-$TOPBLAST × $RAY
+Get burned. Get $EMBER.
+Your entry is the line.
+Below it, you’re in the Burn Zone.
+$BURNED × $EMBER
 
 ## Project description
 
-TOP BLAST turns volatility into a live reward mechanic. Buy $TOPBLAST with $RAY and every verified buy sets your weighted average entry. Fall below it and enter the Blast Zone. Eligible underwater positions share 80% of verified RAY fee claims in approximately 15-minute epochs.
+Buy $BURNED with $EMBER. Your verified buys set your weighted average entry. Below that line, eligible positions enter the Burn Zone and share fee-funded $EMBER rewards. Incoming transfers create no entry. Selling or sending excludes the wallet for the epoch.
 
-## Live thesis
+## Relaunch announcement draft
 
-TOP BLAST is live.
+BURNED.
 
-Everyone says not to buy the top.
-We made the top the point.
+Your entry is the line.
 
-$TOPBLAST × $RAY
+Buy with $EMBER. Fall below your verified average entry and you’re in the Burn Zone.
 
-Buy TOP BLAST with RAY.
-Your verified average entry becomes the line.
+Eligible underwater positions share fee-funded $EMBER rewards.
 
-Fall below it and you enter the Blast Zone.
+Verified buys count. Transfers don’t create an entry. Sell or send and you sit out that epoch.
 
-Every trade feeds claimable RAY fees. After each verified claim, 80% enters the reward pool. Eligible wallets share it by measured unrealized RAY loss.
+Get burned. Get $EMBER.
 
-Transfers do not create an entry.
-Sell or send and that wallet is excluded for the epoch.
+burned.live
 
-Watch the price.
-Watch the line.
-Watch the top get paid.
+## Publication status
 
-topblast.xyz
+This is relaunch copy, not confirmation of a live EMBER market. The new BURNED mint, EMBER mint, pool, funding route and isolated index still require verification. Do not publish a claim that rewards are live until a real new-market reward cycle succeeds. The old TOPBLAST/RAY payout history stays with its original market.
