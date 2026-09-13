@@ -15,6 +15,7 @@ window.BurnedRewardCycle = Object.freeze({
     if (!loaded || now - observedAt > 45000) return result('pending', 'CHECKING EPOCH');
     if (!epoch) return result('ready', 'NEXT SNAPSHOT');
     if (![currentEpoch, currentEpoch - 1].includes(Number(epoch.epoch_id))) return result('snapshot', 'AWAITING SNAPSHOT');
+    if (epoch.reason === 'No further payout authorized') return result(scheduleActive ? 'ready' : 'paused', scheduleActive ? 'NEXT SNAPSHOT' : 'REWARDS PAUSED');
     if (epoch.reason) return result('deferred', 'SETTLEMENT DEFERRED');
     if (!/^\d+$/.test(String(epoch.total_reward_raw))) return result('pending', 'CHECKING EPOCH');
     const expected = BigInt(epoch.total_reward_raw);

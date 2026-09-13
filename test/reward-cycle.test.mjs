@@ -13,3 +13,5 @@ test('zero allocation and price failure get honest non-payment states',()=>{asse
 test('old epochs and wrong-wallet-market batch data cannot produce a new sent event',()=>{assert.equal(view({epoch:{...base.epoch,epoch_id:98}}).phase,'snapshot');assert.equal(view({batches:base.batches.map(b=>({...b,epoch_id:98}))}).phase,'pending');});
 
 test('reviewed one-time snapshot counts down to its real deadline and never implies another',()=>{assert.equal(view({scheduledEpoch:101}).countdown,'27:57');assert.equal(view({scheduledEpoch:99}).countdown,'—');assert.equal(view({epoch:{...base.epoch,epoch_id:100},batches:base.batches.map(b=>({...b,epoch_id:100}))}).phase,'sent');});
+
+test('a previously paused epoch does not imply the new scheduled payout failed',()=>{assert.equal(view({epoch:{...base.epoch,reason:'No further payout authorized'}}).label,'NEXT SNAPSHOT');assert.equal(view({active:false,epoch:{...base.epoch,reason:'No further payout authorized'}}).phase,'paused');});
