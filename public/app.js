@@ -332,7 +332,7 @@
   let sentVisibleUntil = 0;
   let priorSentEpoch = null;
   function cycleView() {
-    return window.BurnedRewardCycle.describe({...rewardCycle, active:window.TopBlastIndex.payoutClockActive(protocol, config),currentEpoch:protocol?.current_epoch});
+    return window.BurnedRewardCycle.describe({...rewardCycle, scheduledEpoch:config.reviewedEpoch, active:window.TopBlastIndex.payoutClockActive(protocol, config),currentEpoch:protocol?.current_epoch});
   }
   async function loadRewardCycle() {
     if (cycleLoading || !window.TopBlastIndex.matchesMarket(protocol, config)) return;
@@ -360,7 +360,7 @@
     for (const target of targets) target.textContent = view.phase === "paused" && target === elements["hero-next-epoch"] ? "~15 MIN" : view.countdown;
     const bar = document.querySelector(".reward-cycle");
     bar.dataset.phase = view.phase;
-    document.getElementById("reward-cycle-state").textContent = view.phase === "sent" && Date.now() >= sentVisibleUntil ? "NEXT SNAPSHOT · LAST EPOCH SENT" : view.label;
+    document.getElementById("reward-cycle-state").textContent = view.phase === "sent" && view.countdown !== "—" && Date.now() >= sentVisibleUntil ? "NEXT SNAPSHOT · LAST EPOCH SENT" : view.label;
     document.getElementById("reward-cycle-clock").textContent = view.countdown;
     const proof = document.getElementById("reward-cycle-proof");
     proof.hidden = !view.signature;

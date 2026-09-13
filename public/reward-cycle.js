@@ -1,17 +1,20 @@
 // Display only. Epochs, allocation and transaction settlement come from the worker.
 window.BurnedRewardCycle = Object.freeze({
-  describe({active, currentEpoch, epoch, batches = [], loaded = false, observedAt = 0, now = Date.now()}) {
+  describe({active, currentEpoch, scheduledEpoch = null, epoch, batches = [], loaded = false, observedAt = 0, now = Date.now()}) {
     const wallEpoch = Math.floor(now / 900000);
-    const remaining = Math.max(0, (Number(currentEpoch) + 1) * 900000 - now);
+    const scheduled = Number.isSafeInteger(scheduledEpoch) ? scheduledEpoch : currentEpoch;
+    const scheduleActive = active && (!Number.isSafeInteger(scheduledEpoch) || wallEpoch <= scheduledEpoch);
+    const remaining = Math.max(0, (Number(scheduled) + 1) * 900000 - now);
     const seconds = Math.ceil(remaining / 1000);
     const countdown = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-    const result = (phase, label, signature = null) => ({phase, label, countdown, signature, epoch:epoch?.epoch_id ?? null});
-    if (!active || !Number.isSafeInteger(currentEpoch)) return {...result('paused', 'REWARDS PAUSED'), countdown:'—'};
-    if (wallEpoch > currentEpoch) return {...result('snapshot', 'AWAITING SNAPSHOT'), countdown:'00:00'};
-    if (wallEpoch < currentEpoch) return {...result('clock', 'CHECK DEVICE CLOCK'), countdown:'—'};
+    const result = (phase, label, signature = null) => ({phase, label, countdown:scheduleActive?countdown:'—', signature, epoch:epoch?.epoch_id ?? null});
+    if (!Number.isSafeInteger(currentEpoch)) return {...result('paused', 'REWARDS PAUSED'), countdown:'—'};
+    if (scheduleActive && wallEpoch > currentEpoch) return {...result('snapshot', 'AWAITING SNAPSHOT'), countdown:'00:00'};
+    if (scheduleActive && wallEpoch < currentEpoch) return {...result('clock', 'CHECK DEVICE CLOCK'), countdown:'—'};
+    if (!scheduleActive && (!loaded || !epoch || now - observedAt > 45000)) return result('paused', 'REWARDS PAUSED');
     if (!loaded || now - observedAt > 45000) return result('pending', 'CHECKING EPOCH');
     if (!epoch) return result('ready', 'NEXT SNAPSHOT');
-    if (Number(epoch.epoch_id) !== currentEpoch - 1) return result('snapshot', 'AWAITING SNAPSHOT');
+    if (![currentEpoch, currentEpoch - 1].includes(Number(epoch.epoch_id))) return result('snapshot', 'AWAITING SNAPSHOT');
     if (epoch.reason) return result('deferred', 'SETTLEMENT DEFERRED');
     if (!/^\d+$/.test(String(epoch.total_reward_raw))) return result('pending', 'CHECKING EPOCH');
     const expected = BigInt(epoch.total_reward_raw);

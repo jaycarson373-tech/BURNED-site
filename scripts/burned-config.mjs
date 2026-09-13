@@ -22,5 +22,7 @@ export function burnedPublicConfig(env = {}) {
   const xUrl = read('PUBLIC_BURNED_X_URL');
   if (xUrl && !/^https:\/\/(?:www\.)?x\.com\/[A-Za-z0-9_]{1,15}\/?$/.test(xUrl)) throw new Error('Invalid BURNED X URL');
   const dexscreenerUrl = marketVerified && mint ? `https://dexscreener.com/solana/${mint}` : '';
-  return { supabaseUrl: indexVerified ? supabaseUrl : '', supabaseKey: indexVerified ? supabaseKey : '', projectId, xUrl, topblastMint: marketVerified ? mint : '', rewardMint: marketVerified ? rewardMint : '', dexscreenerUrl, indexVerified, rewardsActive: indexVerified && read('BURNED_REWARDS_ACTIVE') === 'true' };
+  const reviewedEpoch = read('BURNED_REVIEWED_EPOCH');
+  if (reviewedEpoch && !/^[1-9]\d{0,9}$/.test(reviewedEpoch)) throw new Error('Invalid reviewed epoch');
+  return { reviewedEpoch: reviewedEpoch ? Number(reviewedEpoch) : null, supabaseUrl: indexVerified ? supabaseUrl : '', supabaseKey: indexVerified ? supabaseKey : '', projectId, xUrl, topblastMint: marketVerified ? mint : '', rewardMint: marketVerified ? rewardMint : '', dexscreenerUrl, indexVerified, rewardsActive: indexVerified && read('BURNED_REWARDS_ACTIVE') === 'true' };
 }
