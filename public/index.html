@@ -27,6 +27,7 @@
   <script src="/runtime-config.js" defer></script>
   <script src="/index-data.js" defer></script>
   <script src="/reward-cycle.js" defer></script>
+  <script src="/burn-map.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
@@ -82,7 +83,11 @@
           <div><span class="status-light" aria-hidden="true"></span><span id="blast-zone-title">BURN ZONE</span></div>
           <span class="data-mode" id="chart-mode">CONNECTING TO INDEX</span>
         </div>
-        <div class="chart-shell" id="chart-shell" data-state="clear">
+        <div class="chart-view-tools"><div role="group" aria-label="Burn Zone view"><button type="button" data-chart-view="wallets" aria-pressed="true">WALLET MAP</button><button type="button" data-chart-view="price" aria-pressed="false">PRICE HISTORY</button></div><span id="wallet-map-summary">LOADING WALLET ENTRIES</span></div>
+        <div class="chart-shell" id="chart-shell" data-state="clear" data-view="wallets">
+          <svg id="wallet-entry-map" viewBox="0 0 720 420" role="group" tabindex="0" aria-label="Loading verified wallet entries"></svg>
+          <div class="wallet-map-key"><span class="key-burned">BURNED</span><span class="key-clear">CLEAR</span><span class="key-excluded">EXCLUDED</span></div>
+          <div class="wallet-map-zoom" role="group" aria-label="Wallet map zoom"><button type="button" data-map-zoom="in" aria-label="Zoom in on wallet entries">+</button><button type="button" data-map-zoom="out" aria-label="Zoom out on wallet entries">−</button><button type="button" data-map-zoom="reset">RESET</button></div>
           <img class="chart-logo" src="/burned-logo.png" width="96" height="96" alt="">
           <svg class="blast-chart" id="blast-chart" viewBox="0 0 720 420" role="img" aria-label="Illustration of price moving above and below a tracked entry line">
             <defs>
@@ -109,12 +114,14 @@
           <div class="blast-alert" id="blast-alert" hidden aria-live="polite"><span>BURNED</span><b id="blast-alert-wallet">—</b></div>
           <div class="blast-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
+        <div class="wallet-map-detail" id="wallet-map-detail" hidden><div><strong data-wallet-address></strong><span data-wallet-status></span></div><div><small>VERIFIED ENTRY</small><strong data-wallet-entry></strong></div><span data-wallet-depth></span><button type="button">OPEN WALLET</button></div>
         <div class="zone-state">
           <div><span class="micro-label">PRICE VS ENTRY</span><strong id="zone-status">DATA PENDING</strong></div>
           <div class="chart-quote"><span class="micro-label">CURRENT PRICE</span><strong id="chart-price">—</strong></div>
           <p id="zone-copy">Waiting for the canonical BURNED price.</p>
         </div>
         <div class="preview-controls" id="preview-controls" hidden role="group" aria-label="Explore the Burn Zone mechanic"><button type="button" data-preview="clear" aria-pressed="false">ABOVE ENTRY</button><button type="button" data-preview="burned" aria-pressed="true">BELOW ENTRY</button></div>
+        <p class="wallet-map-help">Each dot is a verified wallet entry. Above the current price line = underwater. Tap a dot to inspect. Entry prices use a logarithmic scale; horizontal spacing separates wallets.</p>
         <p class="visual-caption" id="chart-caption">No unverified price or position data is shown.</p>
         <a class="chart-wallet-link" href="#account">SEARCH WALLET <span>Find your tracked entry</span></a>
       </section>

@@ -23,6 +23,9 @@
   ].map(id => [id, document.getElementById(id)]));
 
   let protocol = null;
+  let walletMapRows = [];
+  let chartView = "wallets";
+  let walletMap;
   let recentBuys = [];
   let marketPriceSamples = [];
   let marketAvailable = false;
@@ -202,6 +205,7 @@
       elements["zone-copy"].textContent = "Search a wallet to place its tracked entry.";
       elements["chart-caption"].textContent = "Canonical price in EMBER. Markers are verified buys indexed from the verified pool.";
       elements["blast-chart"].setAttribute("aria-label", "Finalized BURNED price history with verified buy markers");
+      renderWalletMap();
       return true;
     }
 
@@ -223,52 +227,24 @@
     }
     elements["chart-caption"].textContent = "Canonical indexed price compared with this wallet's verified average entry.";
     elements["blast-chart"].setAttribute("aria-label", "Finalized indexed BURNED price history and buys compared with the searched wallet's tracked entry");
+    renderWalletMap();
     return true;
   }
 
+  function renderWalletMap() {
+    if (!walletMap) return;
+    if (chartView !== 'wallets') return;
+    if (!walletMap.render(walletMapRows, protocol, selectedWallet)) return;
+    if (!selectedAccount) {
+      elements['zone-status'].textContent = `${protocol.wallets_in_zone ?? '—'} IN ZONE`;
+      elements['zone-copy'].textContent = 'Tap a wallet dot to see its verified entry.';
+    }
+    elements['chart-caption'].textContent = `Canonical price · updated ${formatTimestamp(protocol.indexed_through_time)} · refreshes every 15 seconds`;
+  }
   function renderMarketChart() {
-    if (!marketAvailable || !marketPriceSamples.length || Date.now() - marketPriceSamples.at(-1).time > 90000) return false;
-    const latest = marketPriceSamples.at(-1);
-    const series = marketPriceSamples;
-    let minimum = Math.min(...series.map(point => point.value));
-    let maximum = Math.max(...series.map(point => point.value));
-    const basePadding = Math.max(Math.abs(latest.value) * .006, Number.EPSILON);
-    if (minimum === maximum) { minimum -= basePadding; maximum += basePadding; }
-    else {
-      const padding = (maximum - minimum) * .14;
-      minimum -= padding;
-      maximum += padding;
-    }
-    const spread = maximum - minimum;
-    const firstTime = series[0].time;
-    const lastTime = series.at(-1).time;
-    const xFor = time => series.length === 1 ? CHART_WIDTH / 2 : 12 + (time - firstTime) / Math.max(1, lastTime - firstTime) * (CHART_WIDTH - 24);
-    const yFor = value => 28 + (maximum - value) / spread * 354;
-    const points = series.map(point => [xFor(point.time), yFor(point.value)]);
-    const line = pathFrom(points);
-    const current = points.at(-1);
-    elements["price-line"].setAttribute("d", line);
-    elements["price-area"].setAttribute("d", points.length > 1 ? `${line} L${CHART_WIDTH} ${CHART_HEIGHT} L0 ${CHART_HEIGHT} Z` : "");
-    for (const id of ["price-point", "price-point-halo"]) {
-      elements[id].toggleAttribute("hidden", false);
-      elements[id].setAttribute("cx", String(current[0]));
-      elements[id].setAttribute("cy", String(current[1]));
-    }
-    elements["buy-markers"].replaceChildren();
-    elements["entry-line"].toggleAttribute("hidden", true);
-    document.querySelector(".blast-field").toggleAttribute("hidden", true);
-    document.querySelector(".entry-label").hidden = true;
-    document.querySelector(".zone-label").hidden = true;
-    elements["chart-shell"].dataset.state = "market";
-    elements["chart-mode"].textContent = "LIVE MARKET";
-    elements["chart-price"].textContent = formatUsdPrice(latest.value);
-    elements["zone-status"].textContent = "MARKET LIVE";
-    delete elements["zone-status"].dataset.state;
-    elements["zone-copy"].textContent = "Search a wallet to place its tracked entry.";
-    elements["chart-caption"].textContent = "Market price from Jupiter. Eligibility uses the finalized BURNED index.";
-    elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
-    elements["blast-chart"].setAttribute("aria-label", "Live rolling BURNED market price from Jupiter");
-    return true;
+    // External USD quotes belong to the market strip only. The Burn Zone uses
+    // the reward engine's canonical EMBER reference, never a substitute price.
+    return false;
   }
 
   function isPublicIndexConfigured() {
@@ -897,6 +873,20 @@
 
   }
 
+  async function readWalletMapRows(projectId) {
+    const rows = [];
+    for (let offset = 0; offset < 10000; offset += 1000) {
+      const page = await readRows("burned_wallet_accounts", {
+        select: "wallet,tracked_burned_raw,entry_price_raw,current_loss_ember_raw,burn_depth_bps,position_status,updated_at",
+        tracked_burned_raw: "gt.0", project_id: `eq.${projectId}`,
+        order: "current_loss_ember_raw.desc,wallet.asc", limit: "1000", offset: String(offset)
+      });
+      rows.push(...page);
+      if (page.length < 1000) return rows;
+    }
+    throw new Error("Wallet map snapshot exceeded its display budget");
+  }
+
   async function loadProtocol() {
     if (!isPublicIndexConfigured() || protocolLoading) return;
     protocolLoading = true;
@@ -908,12 +898,7 @@
           project_id: `eq.${projectId}`,
           limit: "1"
         }),
-        readRows("burned_wallet_accounts", {
-          select: "wallet,entry_price_raw,current_loss_ember_raw,burn_depth_bps,position_status,updated_at",
-          project_id: `eq.${projectId}`,
-          order: "current_loss_ember_raw.desc",
-          limit: "250"
-        }),
+        readWalletMapRows(projectId),
         readCount("burned_epochs", { project_id: `eq.${projectId}` })
       ]);
       if (!statusRows[0]) {
@@ -927,7 +912,9 @@
         renderActivityFeed();
         throw new Error("Public index mint identity does not match the configured BURNED / EMBER market");
       }
+      if (accountRows.some(row => !window.TopBlastIndex.sameSnapshot(row, statusRows[0]))) throw new Error("Wallet snapshot is still publishing");
       protocol = statusRows[0];
+      walletMapRows = accountRows;
       completedEpochCount = epochCount;
       loadRewardCycle();
       protocol.current_epoch = protocol.current_epoch === null ? null : Number(protocol.current_epoch);
@@ -1044,6 +1031,9 @@
     if (!elements["top-activity"].contains(event.relatedTarget)) activityBannerPaused = false;
   });
 
+  walletMap = new window.BurnedWalletMap.View({svg:document.getElementById('wallet-entry-map'),detail:document.getElementById('wallet-map-detail'),summary:document.getElementById('wallet-map-summary'),formatPrice,formatAmount:formatDecimal,onSelect:wallet=>{elements['wallet-address'].value=wallet;elements['wallet-form'].requestSubmit();document.getElementById('account').scrollIntoView({behavior:reducedMotion?'auto':'smooth',block:'start'});}});
+  for(const button of document.querySelectorAll('[data-chart-view]'))button.addEventListener('click',()=>{chartView=button.dataset.chartView;elements['chart-shell'].dataset.view=chartView;for(const b of document.querySelectorAll('[data-chart-view]'))b.setAttribute('aria-pressed',String(b===button));document.querySelector('.wallet-map-help').hidden=chartView!=='wallets';document.getElementById('wallet-map-detail').hidden=chartView!=='wallets'||!walletMap.selected;renderIndexedChart(selectedEntryRaw);});
+  for(const button of document.querySelectorAll('[data-map-zoom]'))button.addEventListener('click',()=>walletMap.setZoom(button.dataset.mapZoom==='reset'?1:walletMap.zoom+(button.dataset.mapZoom==='in'?.5:-.5)));
   showPendingMarket();
   renderActivityBanner();
   loadMarketData();
