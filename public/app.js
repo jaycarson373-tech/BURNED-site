@@ -1000,6 +1000,7 @@
         elements["copy-ca"].textContent = "COPY FAILED";
       }
     });
+    for (const link of document.querySelectorAll("[data-ember-link]")) link.href = `https://embercurve.fun/t/${encodeURIComponent(config.topblastMint)}`;
     for (const link of document.querySelectorAll("[data-buy-link]")) {
       link.href = `https://embercurve.fun/t/${encodeURIComponent(config.topblastMint)}`;
       link.target = "_blank";
