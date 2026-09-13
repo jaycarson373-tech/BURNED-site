@@ -30,6 +30,7 @@
   let selectedEntryRaw = null;
   let selectedWallet = null;
   let selectedWalletLoaded = false;
+  let walletRequestVersion = 0;
   let selectedAccount = null;
   let policyPriceSamples = [];
   let protocolLoading = false;
@@ -498,6 +499,7 @@
   }
 
   function clearPosition() {
+    selectedEntryRaw = null;
     selectedWalletLoaded = false;
     selectedAccount = null;
     for (const id of ["tracked-balance", "tracked-entry", "current-price", "position-change", "position-status", "blast-depth", "total-received"]) {
@@ -563,33 +565,40 @@
   }
 
   async function refreshSelectedWallet(silent = false) {
-    if (!selectedWallet || !protocol) return;
+    if (!selectedWallet || !window.TopBlastIndex.matchesMarket(protocol, config)) return;
+    const requestVersion = ++walletRequestVersion;
+    const requestWallet = selectedWallet;
+    const requestProtocol = protocol;
+    const currentRequest = () => requestVersion === walletRequestVersion && requestWallet === selectedWallet && requestProtocol === protocol;
     try {
       const [accountRows, distributionRows] = await Promise.all([
         readRows("burned_wallet_accounts", {
           select: "wallet,tracked_burned_raw,tracked_cost_ember_raw,entry_price_raw,blocked_epoch,current_loss_ember_raw,burn_depth_bps,position_status,total_airdropped_ember_raw,last_airdrop_epoch,last_airdrop_signature,updated_at",
-          project_id: `eq.${protocol.project_id}`,
-          wallet: `eq.${selectedWallet}`,
+          project_id: `eq.${requestProtocol.project_id}`,
+          wallet: `eq.${requestWallet}`,
           limit: "1"
         }),
         readRows("toplast_distributions", {
           select: "distribution_id,epoch_id,wallet,amount_ember_raw,signature,updated_at",
-          project_id: `eq.${protocol.project_id}`,
-          wallet: `eq.${selectedWallet}`,
+          project_id: `eq.${requestProtocol.project_id}`,
+          wallet: `eq.${requestWallet}`,
           order: "epoch_id.desc",
           limit: "20"
         })
       ]);
+      if (!currentRequest()) return;
+      if (accountRows[0] && accountRows[0].wallet !== requestWallet) throw new Error("Wallet identity mismatch");
       if (!accountRows[0]) {
         clearPosition();
         selectedWalletLoaded = true;
         selectedEntryRaw = null;
-        if (!silent) setMessage("No verified BURNED entry is indexed for this wallet.");
+        setMessage("No verified BURNED entry is indexed for this wallet.");
         elements["position-status"].textContent = "NO ENTRY";
         renderIndexedChart();
       } else renderPosition(accountRows[0]);
-      renderHistory(distributionRows);
+      renderHistory(distributionRows.filter(item => item.wallet === requestWallet && verifiedDistribution(item)));
     } catch {
+      if (!currentRequest()) return;
       clearPosition();
       selectedEntryRaw = null;
       if (!renderMarketChart()) showPendingMarket();
@@ -926,9 +935,16 @@
     }
   }
 
+  for (const link of document.querySelectorAll('a[href="#account"]')) {
+    link.addEventListener("click", () => {
+      window.setTimeout(() => elements["wallet-address"].focus({ preventScroll: true }), 0);
+    });
+  }
+
   elements["wallet-form"].addEventListener("submit", async event => {
     event.preventDefault();
     const wallet = elements["wallet-address"].value.trim();
+    walletRequestVersion++;
     selectedWallet = null;
     selectedEntryRaw = null;
     clearPosition();
@@ -938,11 +954,11 @@
       elements["wallet-address"].focus();
       return;
     }
+    selectedWallet = wallet;
     if (!isPublicIndexConfigured()) {
-      setMessage("Wallet lookup is ready. Connect the public Supabase index in Vercel to load real positions.", "error");
+      setMessage("Wallet address accepted. BURNED position tracking will be available when the new market is connected.");
       return;
     }
-    selectedWallet = wallet;
     const button = elements["wallet-form"].querySelector("button");
     button.disabled = true;
     button.textContent = "CHECKING";

@@ -756,3 +756,7 @@ body::before { display: none; }
 .top-activity[data-state="ready"] .top-activity-state::before { background:#c2afa0; box-shadow:none; }
 @media(max-width:760px) { .hero h1 { font-size:clamp(2.65rem,10.9vw,4.4rem); } .hero-mark { width:88px;height:88px; } .hero-actions { gap:.65rem; } .hero-actions .primary-button { padding-inline:1rem; } }
 @media(prefers-reduced-motion:reduce) { .price-point,.price-point-halo { transition:none; } .chart-shell.is-crossing .entry-line { animation:none; } }
+
+.chart-wallet-link { display:flex; align-items:center; justify-content:space-between; gap:1rem; min-height:48px; padding:.65rem 1.15rem; border-top:1px solid rgba(255,255,255,.16); color:#ffc55e; font-size:.7rem; font-weight:800; letter-spacing:.04em; }
+.chart-wallet-link span { color:#c8c0b7; font-size:.72rem; font-weight:400; letter-spacing:0; }
+.chart-wallet-link:hover { background:rgba(255,197,94,.06); }

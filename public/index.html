@@ -115,6 +115,7 @@
         </div>
         <div class="preview-controls" id="preview-controls" hidden role="group" aria-label="Explore the Burn Zone mechanic"><button type="button" data-preview="clear" aria-pressed="false">ABOVE ENTRY</button><button type="button" data-preview="burned" aria-pressed="true">BELOW ENTRY</button></div>
         <p class="visual-caption" id="chart-caption">No unverified price or position data is shown.</p>
+        <a class="chart-wallet-link" href="#account">SEARCH WALLET <span>Find your tracked entry</span></a>
       </section>
     </section>
 
@@ -172,10 +173,10 @@
         <form class="wallet-form" id="wallet-form" novalidate>
           <label for="wallet-address">ENTER WALLET</label>
           <div class="wallet-input-row">
-            <input id="wallet-address" name="wallet" type="text" inputmode="text" maxlength="44" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Solana wallet address" aria-describedby="wallet-message">
+            <input id="wallet-address" name="wallet" type="text" inputmode="text" enterkeyhint="search" maxlength="44" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Solana wallet address" aria-describedby="wallet-message">
             <button type="submit">CHECK WALLET</button>
           </div>
-          <p class="wallet-message" id="wallet-message" role="status">Position data appears here when the public index is connected.</p>
+          <p class="wallet-message" id="wallet-message" role="status">Paste your public wallet address. No connection or signature needed.</p>
         </form>
         <div class="account-statusbar"><span><i aria-hidden="true"></i><b id="data-status">DATA NOT CONNECTED</b></span><span id="indexed-time">FINALIZED ONCHAIN DATA ONLY</span></div>
         <dl class="position-grid" id="position-grid" aria-live="polite">
