@@ -6,7 +6,7 @@
   const CHART_HEIGHT = 420;
 
   const JUPITER_TOKEN_API = "https://lite-api.jup.ag/tokens/v2/search";
-  const config = window.__BURNED_PUBLIC_CONFIG__ || {};
+  const config = window.__BLAST_PUBLIC_CONFIG__ || {};
   const QUOTE_MINT = config.rewardMint || "";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const elements = Object.fromEntries([
@@ -18,7 +18,7 @@
     "leaderboard-list", "feed-status", "activity-feed", "history-status", "reward-history", "market-data-status",
     "market-topblast-price", "market-topblast-move", "market-ray-price", "market-ray-move",
     "market-reward-total", "top-activity", "top-activity-event", "top-activity-copy", "top-activity-state",
-    "activity-announcer", "market-epoch-total", "market-next-epoch", "total-epoch-count", "next-epoch-time",
+    "activity-announcer", "market-epoch-total", "market-next-epoch", "next-epoch-time",
     "wallet-next-epoch", "hero-next-epoch", "copy-ca"
   ].map(id => [id, document.getElementById(id)]));
 
@@ -36,6 +36,8 @@
   let walletRequestVersion = 0;
   let selectedAccount = null;
   let policyPriceSamples = [];
+  let chartInteraction;
+  let chartHistoryLoaded = false;
   let protocolLoading = false;
   let activityLoading = false;
   let initialBuyIndexLoaded = false;
@@ -66,45 +68,23 @@
   }
 
   function setChartState(blasted, currentY) {
+    const wasClear = elements["chart-shell"].dataset.state === "clear";
     elements["chart-shell"].dataset.state = blasted ? "blasted" : "clear";
-    elements["zone-status"].textContent = blasted ? "BURNED" : "CLEAR";
+    if (blasted && wasClear && !reducedMotion) {
+      elements["chart-shell"].classList.remove("is-crossing");
+      requestAnimationFrame(() => elements["chart-shell"].classList.add("is-crossing"));
+    }
+    elements["zone-status"].textContent = blasted ? "BLASTED" : "CLEAR";
     elements["zone-status"].dataset.state = blasted ? "blasted" : "clear";
     elements["zone-copy"].textContent = blasted
-      ? "Below the line. Inside the Burn Zone."
-      : "Above the line. Outside the Burn Zone.";
+      ? "Below entry. Inside the Blast Zone."
+      : "Above the line. Outside the Blast Zone.";
     const top = Math.min(86, Math.max(9, currentY / CHART_HEIGHT * 100));
     elements["current-label"].style.top = `calc(${top.toFixed(2)}% - .8rem)`;
   }
 
-  // Illustration only. Never writes protocol, account, eligibility or market samples.
-  function renderMechanicPreview(burned) {
-    const controls = document.getElementById("preview-controls");
-    controls.hidden = false;
-    for (const button of controls.querySelectorAll("button")) button.setAttribute("aria-pressed", String((button.dataset.preview === "burned") === burned));
-    const points = burned ? [[0,110],[110,85],[220,145],[310,125],[400,190],[510,230],[610,215],[700,280]] : [[0,270],[110,220],[220,245],[310,195],[400,160],[510,190],[610,130],[700,105]];
-    const y = points.at(-1)[1];
-    elements["price-line"].setAttribute("d", pathFrom(points));
-    elements["price-area"].setAttribute("d", `${pathFrom(points)} L700 420 L0 420 Z`);
-    elements["price-point"].setAttribute("cy", y);
-    elements["price-point-halo"].setAttribute("cy", y);
-    elements["chart-mode"].textContent = "MECHANIC PREVIEW";
-    elements["chart-price"].textContent = "—";
-    elements["chart-caption"].textContent = "Illustration only. No live price, wallet or reward data.";
-    elements["blast-chart"].setAttribute("aria-label", burned ? "Mechanic preview: illustrative price below entry, in the Burn Zone" : "Mechanic preview: illustrative price above entry, outside the Burn Zone");
-    const previous = elements["chart-shell"].dataset.state;
-    setChartState(burned, y);
-    if (burned && previous !== "blasted" && !reducedMotion) {
-      elements["chart-shell"].classList.remove("is-crossing");
-      requestAnimationFrame(() => elements["chart-shell"].classList.add("is-crossing"));
-    }
-  }
-  document.getElementById("preview-controls").addEventListener("click", event => {
-    const button = event.target.closest("button[data-preview]");
-    if (button && !config.indexVerified) renderMechanicPreview(button.dataset.preview === "burned");
-  });
-
   function showPendingMarket() {
-    if (!config.indexVerified) { renderMechanicPreview(true); return; }
+    document.getElementById("preview-controls").hidden = true;
     const awaitingMint = !validSolanaAddress(config.topblastMint || "");
     for (const id of ["price-point", "price-point-halo"]) elements[id].toggleAttribute("hidden", true);
     elements["entry-line"].toggleAttribute("hidden", true);
@@ -115,11 +95,11 @@
     elements["price-line"].setAttribute("d", "");
     elements["price-area"].setAttribute("d", "");
     elements["chart-shell"].dataset.state = "market";
-    elements["blast-chart"].setAttribute("aria-label", "BURNED market data loading");
+    elements["blast-chart"].setAttribute("aria-label", "TOPBLAST market data loading");
     elements["chart-mode"].textContent = awaitingMint ? "AWAITING PRODUCTION MINT" : "CONNECTING TO INDEX";
     elements["zone-status"].textContent = "DATA PENDING";
     delete elements["zone-status"].dataset.state;
-    elements["zone-copy"].textContent = awaitingMint ? "Production market data activates after the verified launch." : "Waiting for the canonical BURNED price.";
+    elements["zone-copy"].textContent = awaitingMint ? "Production market data activates after the verified launch." : "Waiting for the canonical TOPBLAST price.";
     elements["chart-caption"].textContent = "No unverified price or position data is shown.";
     elements["chart-price"].textContent = "—";
   }
@@ -147,7 +127,7 @@
       core.classList.add("blast-marker-core");
       core.setAttribute("r", "4.5");
       const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-      title.textContent = `BURNED by ${shortWallet(buy.wallet)}`;
+      title.textContent = `TOPBLAST by ${shortWallet(buy.wallet)}`;
       marker.append(title, ring, core);
       elements["buy-markers"].append(marker);
     }
@@ -159,14 +139,20 @@
     if (!currentPrice || !Number.isFinite(currentTime)) return false;
     const point = { value: currentPrice, time: currentTime };
     if (!policyPriceSamples.length || policyPriceSamples.at(-1).time !== currentTime) policyPriceSamples.push(point);
-    policyPriceSamples = policyPriceSamples.slice(-90);
-    const series = policyPriceSamples;
+    policyPriceSamples = window.BlastChart.samples(policyPriceSamples).slice(-1500);
+    const view=chartInteraction?.setRows(policyPriceSamples);
+    const series=view?view.rows:policyPriceSamples;
+    if(!series.length){
+      elements['price-line'].setAttribute('d','');elements['price-area'].setAttribute('d','');elements['buy-markers'].replaceChildren();
+      for(const id of ['price-point','price-point-halo'])elements[id].toggleAttribute('hidden',true);
+      elements['chart-caption'].textContent='No canonical observations in this interval. Select ALL or reset the view.';return false;
+    }
 
     const values = series.map(point => point.value);
     const visibleBuys = window.TopBlastIndex.buysInWindow(recentBuys, series[0].time, series.at(-1).time);
     const buyPrices = visibleBuys.map(executionPrice).filter(Boolean);
     const entry = asRaw(entryRaw, true);
-    const all = [...values, ...buyPrices, ...(entry ? [entry] : [])];
+    const all = [...values, currentPrice, ...buyPrices, ...(entry ? [entry] : [])];
     let minimum = all.reduce((a, b) => a < b ? a : b);
     let maximum = all.reduce((a, b) => a > b ? a : b);
     if (minimum === maximum) { minimum -= 1n; maximum += 1n; }
@@ -175,25 +161,25 @@
     maximum += padding;
     const spread = maximum - minimum;
     const yFor = value => 28 + Number((maximum - value) * 10000n / spread) / 10000 * 354;
-    const firstTime = series[0].time;
-    const lastTime = series.at(-1).time;
+    const firstTime = view?.start ?? series[0].time;
+    const lastTime = view?.end ?? series.at(-1).time;
     const xFor = time => !Number.isFinite(time) || lastTime <= firstTime
       ? CHART_WIDTH / 2
       : Math.min(CHART_WIDTH - 12, Math.max(12, (time - firstTime) / (lastTime - firstTime) * CHART_WIDTH));
     const points = series.map(point => [xFor(point.time), yFor(point.value)]);
-    const line = pathFrom(points);
-    const current = points.at(-1);
+    const line = points.map((p,i)=>`${i&&series[i].time-series[i-1].time<=1200000?"L":"M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+    const current = [xFor(currentTime), yFor(currentPrice)];
     elements["price-line"].setAttribute("d", line);
-    elements["price-area"].setAttribute("d", points.length > 1 ? `${line} L${CHART_WIDTH} ${CHART_HEIGHT} L0 ${CHART_HEIGHT} Z` : "");
+    elements["price-area"].setAttribute("d", "");
     for (const id of ["price-point", "price-point-halo"]) {
-      elements[id].toggleAttribute("hidden", false);
+      elements[id].toggleAttribute("hidden", currentTime > lastTime || currentTime < firstTime);
       elements[id].setAttribute("cx", String(current[0]));
       elements[id].setAttribute("cy", String(current[1]));
     }
     renderBuyMarkers(yFor, xFor, visibleBuys);
     elements["current-label"].style.top = `calc(${Math.min(86, Math.max(9, current[1] / CHART_HEIGHT * 100)).toFixed(2)}% - .8rem)`;
-    elements["chart-mode"].textContent = window.TopBlastIndex.fresh(protocol) ? "LIVE BURN ZONE" : "BURN ZONE";
-    elements["chart-price"].textContent = currentPrice ? `${formatPrice(currentPrice)} $EMBER` : "—";
+    elements["chart-mode"].textContent = window.TopBlastIndex.fresh(protocol) ? "LIVE BLAST ZONE" : "BLAST ZONE";
+    elements["chart-price"].textContent = currentPrice ? `${formatPrice(currentPrice)} $STONK` : "—";
 
     if (!entry || !selectedAccount || !window.TopBlastIndex.sameSnapshot(selectedAccount, protocol)) {
       elements["chart-shell"].dataset.state = "market";
@@ -201,10 +187,10 @@
       document.querySelector(".blast-field").toggleAttribute("hidden", true);
       document.querySelector(".entry-label").hidden = true;
       document.querySelector(".zone-label").hidden = true;
-      elements["zone-status"].textContent = "MARKET LIVE";
+      elements["zone-status"].textContent = "PRICE HISTORY";
       elements["zone-copy"].textContent = "Search a wallet to place its tracked entry.";
-      elements["chart-caption"].textContent = "Canonical price in EMBER. Markers are verified buys indexed from the verified pool.";
-      elements["blast-chart"].setAttribute("aria-label", "Finalized BURNED price history with verified buy markers");
+      elements["chart-caption"].textContent = "Canonical price history in STONK. Historic epoch snapshots plus new finalized observations. Dots mark verified buys.";
+      elements["blast-chart"].setAttribute("aria-label", "Finalized TOPBLAST price history with verified buy markers");
       renderWalletMap();
       return true;
     }
@@ -219,6 +205,7 @@
     document.querySelector(".blast-field").setAttribute("y", entryY.toFixed(1));
     document.querySelector(".blast-field").setAttribute("height", Math.max(0, CHART_HEIGHT - entryY).toFixed(1));
     document.querySelector(".entry-label").style.top = `calc(${Math.min(91, Math.max(5, entryY / CHART_HEIGHT * 100)).toFixed(2)}% - 1.5rem)`;
+    elements["chart-shell"].style.setProperty("--entry-y", `${entryY / CHART_HEIGHT * 100}%`);
     setChartState(selectedAccount.position_status === "blasted", current[1]);
     if (selectedAccount.position_status === "excluded") {
       elements["zone-status"].textContent = "EXCLUDED";
@@ -226,7 +213,7 @@
       elements["chart-shell"].dataset.state = "excluded";
     }
     elements["chart-caption"].textContent = "Canonical indexed price compared with this wallet's verified average entry.";
-    elements["blast-chart"].setAttribute("aria-label", "Finalized indexed BURNED price history and buys compared with the searched wallet's tracked entry");
+    elements["blast-chart"].setAttribute("aria-label", "Finalized indexed TOPBLAST price history and buys compared with the searched wallet's tracked entry");
     renderWalletMap();
     return true;
   }
@@ -242,8 +229,8 @@
     elements['chart-caption'].textContent = `Canonical price · updated ${formatTimestamp(protocol.indexed_through_time)} · refreshes every 15 seconds`;
   }
   function renderMarketChart() {
-    // External USD quotes belong to the market strip only. The Burn Zone uses
-    // the reward engine's canonical EMBER reference, never a substitute price.
+    // External USD quotes belong to the market strip only. The Blast Zone uses
+    // the reward engine's canonical STONK reference, never a substitute price.
     return false;
   }
 
@@ -407,47 +394,37 @@
   }
 
   async function loadMarketData() {
-    if (!config.indexVerified || !validSolanaAddress(QUOTE_MINT)) { elements["market-data-status"].textContent = "BURNED / EMBER · MARKET SETUP PENDING"; return; }
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 8000);
     try {
-      const token = async mint => {
-        const url = new URL(JUPITER_TOKEN_API);
-        url.searchParams.set("query", mint);
-        const response = await fetch(url, { signal: controller.signal });
-        if (!response.ok) throw new Error(`Jupiter returned ${response.status}`);
-        const rows = window.TopBlastIndex.parse(await response.text());
-        const row = Array.isArray(rows) ? rows.find(item => item?.id === mint) : null;
-        if (!row) throw new Error("Jupiter token data is unavailable");
-        return row;
-      };
-      const [topblast, quote] = await Promise.all([config.topblastMint ? token(config.topblastMint) : null, token(QUOTE_MINT)]);
-      const topblastPrice = Number(topblast?.usdPrice);
-      marketAvailable = Number.isFinite(topblastPrice) && topblastPrice > 0;
-      elements["market-topblast-price"].textContent = formatUsdPrice(topblastPrice);
-      elements["market-ray-price"].textContent = formatUsdPrice(Number(quote.usdPrice));
-      renderMarketMove(elements["market-topblast-move"], Number(topblast?.stats24h?.priceChange));
-      renderMarketMove(elements["market-ray-move"], Number(quote.stats24h?.priceChange));
-      const source = "EMBER MARKET";
-      elements["market-data-status"].textContent = `${source} · ${new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(new Date()).toUpperCase()}`;
-      if (Number.isFinite(topblastPrice) && topblastPrice > 0) {
-        const now = Date.now();
-        if (!marketPriceSamples.length || now - marketPriceSamples.at(-1).time >= 5_000) {
-          marketPriceSamples = [...marketPriceSamples, { value: topblastPrice, time: now }].slice(-120);
-        }
-        if (!protocol?.current_price_raw || !renderIndexedChart(selectedEntryRaw)) renderMarketChart();
-      }
+      const read = async asset => {const r=await fetch(`/api/market?asset=${asset}`,{signal:AbortSignal.timeout(9000)});if(!r.ok)throw new Error('Market unavailable');return r.json();};
+      const quote=await read('stonk');
+      if (!quote.available || quote.mint !== QUOTE_MINT) throw new Error('Wrong quote market');
+      const usd=formatUsdPrice(quote.priceUsd);
+      elements['market-ray-price'].textContent=usd;
+      document.getElementById('stonk-chart-price').textContent=usd;
+      renderMarketMove(elements['market-ray-move'],quote.change24h);
+      renderMarketMove(document.getElementById('stonk-chart-change'),quote.change24h);
+      document.getElementById('stonk-chart-updated').textContent=`Updated ${new Date(quote.asOf).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+      elements['market-data-status'].textContent='STONK MARKET · VERIFIED TOKEN';
+      if(config.topblastMint){const token=await read('blast');if(token.available&&token.mint===config.topblastMint){elements['market-topblast-price'].textContent=formatUsdPrice(token.priceUsd);renderMarketMove(elements['market-topblast-move'],token.change24h);}}
     } catch {
-      for (const id of ["market-topblast-price", "market-topblast-move", "market-ray-price", "market-ray-move"]) elements[id].textContent = "—";
-      marketAvailable = false;
-      elements["market-data-status"].textContent = "MARKET DATA UNAVAILABLE";
-      if (!renderIndexedChart(selectedEntryRaw)) {
-        showPendingMarket();
-        elements["chart-mode"].textContent = "DATA UNAVAILABLE";
-      }
-    } finally {
-      window.clearTimeout(timeout);
+      document.getElementById('stonk-chart-updated').textContent='Last available market quote';
     }
+  }
+
+  async function loadChartHistory() {
+    if(chartHistoryLoaded||!protocol)return;
+    const market=protocol;
+    try {
+      let rows;
+      try {
+        const history=await readRows('blast_price_history',{select:'price_raw,observed_at',project_id:`eq.${market.project_id}`,order:'observed_at.desc',limit:'1500'});
+        rows=history.map(r=>({reference_price_raw:r.price_raw,created_at:r.observed_at}));
+      } catch { rows=[]; }
+      if(!rows.length)rows=await readRows('burned_epochs',{select:'reference_price_raw,created_at',project_id:`eq.${market.project_id}`,reference_price_raw:'gt.0',order:'epoch_id.desc',limit:'672'});
+      if(protocol?.project_id!==market.project_id)return;
+      policyPriceSamples=window.BlastChart.samples([...rows.map(r=>({time:Date.parse(r.created_at),value:r.reference_price_raw})),...policyPriceSamples]);
+      chartHistoryLoaded=true;renderIndexedChart(selectedEntryRaw);
+    } catch { /* Current canonical observations still render if historic snapshots cannot load. */ }
   }
 
   function validSolanaAddress(value) {
@@ -470,7 +447,7 @@
     elements["history-status"].textContent = status;
     elements["reward-history"].replaceChildren();
     const empty = document.createElement("p");
-    empty.textContent = "No confirmed EMBER rewards loaded.";
+    empty.textContent = "No confirmed STONK rewards loaded.";
     elements["reward-history"].append(empty);
   }
 
@@ -479,7 +456,7 @@
     elements["history-status"].textContent = distributions.length ? `${distributions.length} VERIFIED` : "NO REWARDS";
     if (!distributions.length) {
       const empty = document.createElement("p");
-      empty.textContent = "No confirmed EMBER rewards for this wallet.";
+      empty.textContent = "No confirmed STONK rewards for this wallet.";
       elements["reward-history"].append(empty);
       return;
     }
@@ -495,7 +472,7 @@
       tx.target = "_blank";
       tx.rel = "noreferrer";
       tx.textContent = "VERIFY";
-      tx.setAttribute("aria-label", `Verify EMBER reward ${distribution.epoch_id} on Solscan`);
+      tx.setAttribute("aria-label", `Verify STONK reward ${distribution.epoch_id} on Solscan`);
       row.append(epoch, amount, tx);
       elements["reward-history"].append(row);
     }
@@ -529,10 +506,10 @@
     const blocked = Number.isInteger(protocol?.current_epoch) && Number(account.blocked_epoch) >= protocol.current_epoch;
     const canonicalStatus = blocked ? "excluded" : String(account.position_status || "");
     const blasted = canonicalStatus === "blasted";
-    elements["tracked-balance"].textContent = `${formatDecimal(account.tracked_burned_raw, protocol.burned_decimals, 4)} $BURNED`;
-    elements["tracked-entry"].textContent = entryRaw ? `${formatPrice(entryRaw)} $EMBER` : "—";
-    elements["current-price"].textContent = currentRaw ? `${formatPrice(currentRaw)} $EMBER` : "—";
-    elements["total-received"].textContent = `${formatDecimal(account.total_airdropped_ember_raw, protocol.ember_decimals, 4)} $EMBER`;
+    elements["tracked-balance"].textContent = `${formatDecimal(account.tracked_burned_raw, protocol.burned_decimals, 4)} $BLAST`;
+    elements["tracked-entry"].textContent = entryRaw ? `${formatPrice(entryRaw)} $STONK` : "—";
+    elements["current-price"].textContent = currentRaw ? `${formatPrice(currentRaw)} $STONK` : "—";
+    elements["total-received"].textContent = `${formatDecimal(account.total_airdropped_ember_raw, protocol.ember_decimals, 4)} $STONK`;
     elements["blast-depth"].textContent = currentRaw && entryRaw ? formatBasisPoints(account.burn_depth_bps) : "—";
     if (!entryRaw || !currentRaw) {
       elements["position-status"].textContent = blocked ? "EXCLUDED THIS EPOCH" : entryRaw ? "PRICE UNAVAILABLE" : "NO ENTRY";
@@ -543,13 +520,13 @@
 
     elements["position-change"].textContent = formatPercent(currentRaw, entryRaw);
     elements["position-change"].dataset.state = blasted ? "negative" : "positive";
-    elements["position-status"].textContent = blocked ? "EXCLUDED THIS EPOCH" : blasted ? "BURNED" : "CLEAR";
+    elements["position-status"].textContent = blocked ? "EXCLUDED THIS EPOCH" : blasted ? "BLASTED" : "CLEAR";
     elements["position-status"].dataset.state = blocked || blasted ? "blasted" : "clear";
     setMessage(blocked
       ? "A sell, send or burn changed this wallet's indexed position."
       : blasted
-        ? "Below tracked entry. This wallet is inside the Burn Zone."
-        : "At or above tracked entry. This position is outside the Burn Zone.");
+        ? "Below tracked entry. This wallet is inside the Blast Zone."
+        : "At or above tracked entry. This position is outside the Blast Zone.");
     renderIndexedChart(entryRaw);
   }
 
@@ -595,7 +572,7 @@
         clearPosition();
         selectedWalletLoaded = true;
         selectedEntryRaw = null;
-        setMessage("No verified BURNED entry is indexed for this wallet.");
+        setMessage("No verified TOPBLAST entry is indexed for this wallet.");
         elements["position-status"].textContent = "NO ENTRY";
         renderIndexedChart();
       } else renderPosition(accountRows[0]);
@@ -640,7 +617,7 @@
       if (crossingActivity.some(item => item.id === id)) continue;
       crossingActivity.unshift({
         id,
-        kind: crossing === "entered" ? "ENTERED BURN ZONE" : "LEFT BURN ZONE",
+        kind: crossing === "entered" ? "ENTERED BLAST ZONE" : "LEFT BLAST ZONE",
         className: crossing,
         wallet: account.wallet,
         detail: crossing === "entered" ? `${formatBasisPoints(account.burn_depth_bps)} BELOW ENTRY` : "AT OR ABOVE ENTRY",
@@ -661,12 +638,12 @@
   function renderActivityBanner({ animate = false, newestId = null } = {}) {
     if (!validSolanaAddress(config.topblastMint || "")) {
       elements["top-activity"].dataset.state = "ready";
-      elements["top-activity-copy"].textContent = "GET BURNED. GET $EMBER.";
+      elements["top-activity-copy"].textContent = "GET BLASTED. GET $STONK.";
       elements["top-activity-state"].textContent = "MARKET SETUP PENDING";
       elements["top-activity-event"].href = "#watch";
       elements["top-activity-event"].removeAttribute("target");
       elements["top-activity-event"].removeAttribute("rel");
-      elements["top-activity-event"].setAttribute("aria-label", "BURNED verified activity begins at launch.");
+      elements["top-activity-event"].setAttribute("aria-label", "TOPBLAST verified activity begins at launch.");
       return;
     }
     if (!isPublicIndexConfigured()) {
@@ -676,7 +653,7 @@
       elements["top-activity-event"].href = "#watch";
       elements["top-activity-event"].removeAttribute("target");
       elements["top-activity-event"].removeAttribute("rel");
-      elements["top-activity-event"].setAttribute("aria-label", "Waiting for the production BURNED index.");
+      elements["top-activity-event"].setAttribute("aria-label", "Waiting for the production TOPBLAST index.");
       return;
     }
     const unavailable = !protocol || activityUnavailable;
@@ -698,7 +675,7 @@
       elements["top-activity-event"].href = "#watch";
       elements["top-activity-event"].removeAttribute("target");
       elements["top-activity-event"].removeAttribute("rel");
-      elements["top-activity-event"].setAttribute("aria-label", "Waiting for the next verified BURNED buy.");
+      elements["top-activity-event"].setAttribute("aria-label", "Waiting for the next verified TOPBLAST buy.");
       return;
     }
     activityBannerIndex %= activityBuys.length;
@@ -712,11 +689,11 @@
     const time = document.createElement("time");
     time.dateTime = buy.occurred_at;
     time.textContent = window.TopBlastIndex.relativeTime(buy.occurred_at);
-    elements["top-activity-copy"].append(wallet, " ", action, ` · Bought ${amount} $EMBER worth · `, time);
+    elements["top-activity-copy"].append(wallet, " ", action, ` · Bought ${amount} $STONK worth · `, time);
     elements["top-activity-event"].href = `https://solscan.io/tx/${encodeURIComponent(buy.signature)}`;
     elements["top-activity-event"].target = "_blank";
     elements["top-activity-event"].rel = "noreferrer";
-    elements["top-activity-event"].setAttribute("aria-label", `${shortWallet(buy.wallet)} bought BURNED. Bought ${amount} EMBER worth. Open transaction proof.`);
+    elements["top-activity-event"].setAttribute("aria-label", `${shortWallet(buy.wallet)} bought TOPBLAST. Bought ${amount} STONK worth. Open transaction proof.`);
     elements["top-activity-state"].textContent = "OPEN PROOF";
     if (animate && !reducedMotion) {
       void elements["top-activity-event"].offsetWidth;
@@ -731,8 +708,8 @@
   function renderActivityFeed(delayed = !protocol || !window.TopBlastIndex.fresh(protocol)) {
     elements["activity-feed"].replaceChildren();
     const feed = [
-      ...activityBuys.slice(0, 8).map(item => ({ id: activityId("buy", item), kind: "VERIFIED BUY", className: "buy", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol?.ember_decimals, unit: "$EMBER", detail: "VERIFIED BUY", order: Date.parse(item.occurred_at), signature: item.signature })),
-      ...activityDistributions.slice(0, 8).map(item => ({ id: activityId("distribution", item), kind: "EMBER RECEIVED", className: "reward", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol?.ember_decimals, unit: "$EMBER", detail: `EPOCH ${item.epoch_id}`, order: Date.parse(item.updated_at || "") || 0, signature: item.signature })),
+      ...activityBuys.slice(0, 8).map(item => ({ id: activityId("buy", item), kind: "VERIFIED BUY", className: "buy", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol?.ember_decimals, unit: "$STONK", detail: "VERIFIED BUY", order: Date.parse(item.occurred_at), signature: item.signature })),
+      ...activityDistributions.slice(0, 8).map(item => ({ id: activityId("distribution", item), kind: "AIRDROP", className: "reward", wallet: item.wallet, amount: item.amount_ember_raw, decimals: protocol?.ember_decimals, unit: "$STONK", detail: `EPOCH ${item.epoch_id}`, order: Date.parse(item.updated_at || "") || 0, signature: item.signature })),
       ...crossingActivity
     ].sort((a, b) => b.order - a.order).slice(0, 7);
     const newest = feed.find(item => newActivityIds.has(item.id));
@@ -785,7 +762,7 @@
     if (!isPublicIndexConfigured() || !window.TopBlastIndex.matchesMarket(protocol, config) || activityLoading) return;
     activityLoading = true;
     try {
-      const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "burned-ember";
+      const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "blast-stonk-v1";
       const [buyRows, distributionRows] = await Promise.all([
         readRows("toplast_buys", {
           select: "event_id,wallet,amount_toplast_raw,amount_ember_raw,occurred_at,signature",
@@ -835,14 +812,13 @@
     const noPrice = !protocol.current_price_raw;
     leaderboard = leaderboard.filter(account => window.TopBlastIndex.sameSnapshot(account, protocol));
     elements["zone-wallet-count"].textContent = noPrice ? "—" : formatInteger(protocol.wallets_in_zone);
-    elements["top-blast-count"].textContent = formatInteger(protocol.top_blasts_indexed);
+    elements["top-blast-count"].textContent = String(walletMapRows.length);
     const rewardTotal = protocol.total_airdropped_ember_raw === null
       ? "—"
-      : `${formatDecimal(protocol.total_airdropped_ember_raw, protocol.ember_decimals, 3)} $EMBER`;
+      : `${formatDecimal(protocol.total_airdropped_ember_raw, protocol.ember_decimals, 3)} $STONK`;
     elements["global-reward-total"].textContent = rewardTotal;
     elements["market-reward-total"].textContent = rewardTotal;
     const epochTotal = completedEpochCount === null ? "—" : formatInteger(completedEpochCount);
-    elements["total-epoch-count"].textContent = epochTotal;
     elements["market-epoch-total"].textContent = epochTotal;
     renderEpochClock();
 
@@ -850,7 +826,7 @@
     if (noPrice || !leaderboard.length) {
       const row = document.createElement("li");
       row.className = "empty-row";
-      row.innerHTML = "<span>—</span><p>No current Burn Zone positions.</p><strong>—</strong>";
+      row.innerHTML = "<span>—</span><p>No current Blast Zone positions.</p><span>—</span><strong>—</strong>";
       if (noPrice) row.querySelector("p").textContent = "Waiting for current canonical price coverage.";
       elements["leaderboard-list"].append(row);
       elements["leaderboard-status"].textContent = noPrice ? "PRICE UNAVAILABLE" : "NO POSITIONS";
@@ -861,18 +837,62 @@
         const rank = document.createElement("span");
         const wallet = document.createElement("p");
         wallet.textContent = shortWallet(account.wallet);
-        const detail = document.createElement("small");
-        detail.textContent = `LOSS ${formatDecimal(account.current_loss_ember_raw, protocol.ember_decimals, 3)} $EMBER · ENTRY ${formatPrice(account.entry_price_raw)} $EMBER`;
-        wallet.append(detail);
+        const entry = document.createElement("span");
+        entry.className = "leaderboard-entry";
+        entry.textContent = formatPrice(account.entry_price_raw);
         const depth = document.createElement("strong");
-        depth.textContent = `-${formatBasisPoints(account.burn_depth_bps)} · BURNED`;
-        row.append(rank, wallet, depth);
+        depth.textContent = `-${formatBasisPoints(account.burn_depth_bps)} · TOPBLAST`;
+        row.append(rank, wallet, entry, depth);
         elements["leaderboard-list"].append(row);
       }
     }
 
   }
 
+  let proofLoading = false;
+  function proofLink(label, path) {
+    const link = document.createElement("a");
+    link.href = `https://solscan.io/${path}`;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = label;
+    return link;
+  }
+  for (const [id, mint] of [["proof-ca", config.topblastMint], ["proof-reward-mint", config.rewardMint]]) {
+    if (validSolanaAddress(mint || "")) document.getElementById(id).replaceChildren(proofLink(mint, `token/${mint}`));
+  }
+  async function loadProof() {
+    if (proofLoading || !window.TopBlastIndex.matchesMarket(protocol, config)) return;
+    const market = protocol;
+    proofLoading = true;
+    try {
+      const [epochs, batches] = await Promise.all([
+        readRows("burned_epochs", {select:"epoch_id,cutoff_slot,plan_hash",project_id:`eq.${market.project_id}`,order:"epoch_id.desc",limit:"8"}),
+        readRows("burned_batches", {select:"epoch_id,kind,status,signature,total_reward_raw",project_id:`eq.${market.project_id}`,status:"eq.settled",order:"epoch_id.desc",limit:"16"})
+      ]);
+      if (!window.TopBlastIndex.matchesMarket(protocol, config) || market.project_id !== protocol.project_id) return;
+      const snapshots = epochs.filter(row => /^\d+$/.test(String(row.epoch_id)) && /^\d+$/.test(String(row.cutoff_slot)) && /^[a-f0-9]{64}$/.test(row.plan_hash));
+      const transactions = batches.filter(row => row.status === "settled" && ["payout","claim"].includes(row.kind) && validSignature(row.signature));
+      if (snapshots.length) {
+        const target = document.getElementById("proof-snapshots"); target.replaceChildren();
+        for (const item of snapshots) {
+          const row = document.createElement("div"); row.className = "proof-row";
+          const hash = document.createElement("code"); hash.textContent = `Snapshot hash: ${item.plan_hash}`;
+          row.append(`EPOCH ${item.epoch_id}`, proofLink(`SLOT ${item.cutoff_slot}`, `block/${item.cutoff_slot}`), hash); target.append(row);
+        }
+      }
+      if (transactions.length) {
+        const target = document.getElementById("proof-transactions"); target.replaceChildren();
+        for (const item of transactions) {
+          const row = document.createElement("div"); row.className = "proof-row";
+          const label = item.kind === "claim" ? "FEE CLAIM" : `${formatDecimal(item.total_reward_raw, protocol.ember_decimals, 4)} $STONK DISTRIBUTED`;
+          row.append(`${label} · EPOCH ${item.epoch_id}`, proofLink("VERIFY", `tx/${item.signature}`)); target.append(row);
+        }
+      }
+    } catch { /* Keep only previously verified proof; no synthetic records. */ }
+    finally { proofLoading = false; }
+  }
+  document.getElementById("onchain-proof").addEventListener("toggle", event => { if (event.target.open) loadProof(); });
   async function readWalletMapRows(projectId) {
     const rows = [];
     for (let offset = 0; offset < 10000; offset += 1000) {
@@ -891,7 +911,7 @@
     if (!isPublicIndexConfigured() || protocolLoading) return;
     protocolLoading = true;
     try {
-      const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "burned-ember";
+      const projectId = /^[a-z0-9][a-z0-9_-]{0,63}$/.test(config.projectId || "") ? config.projectId : "blast-stonk-v1";
       const [statusRows, accountRows, epochCount] = await Promise.all([
         readRows("burned_worker_status", {
           select: "project_id,burned_mint,ember_mint,current_epoch,current_price_raw,current_price_time,burned_decimals,ember_decimals,indexed_through_slot,indexed_through_time,wallets_in_zone,top_blasts_indexed,total_airdropped_ember_raw,updated_at,mode",
@@ -910,13 +930,14 @@
         activityBuys = []; activityDistributions = []; recentBuys = []; crossingActivity = [];
         policyPriceSamples = []; selectedEntryRaw = null; selectedAccount = null;
         renderActivityFeed();
-        throw new Error("Public index mint identity does not match the configured BURNED / EMBER market");
+        throw new Error("Public index mint identity does not match the configured TOPBLAST / STONK market");
       }
       if (accountRows.some(row => !window.TopBlastIndex.sameSnapshot(row, statusRows[0]))) throw new Error("Wallet snapshot is still publishing");
       protocol = statusRows[0];
       walletMapRows = accountRows;
       completedEpochCount = epochCount;
       loadRewardCycle();
+      loadChartHistory();
       protocol.current_epoch = protocol.current_epoch === null ? null : Number(protocol.current_epoch);
       protocol.burned_decimals = protocol.burned_decimals === null ? null : Number(protocol.burned_decimals);
       protocol.ember_decimals = protocol.ember_decimals === null ? null : Number(protocol.ember_decimals);
@@ -928,10 +949,15 @@
       recordPositionCrossings(accountRows, delayed);
       const leaderboardRows = accountRows.filter(account => account.position_status === "blasted").slice(0, 5);
       renderWatch(leaderboardRows, delayed);
+      const countSnapshot = protocol;
+      readCount("burned_wallet_accounts", {project_id:`eq.${protocol.project_id}`,tracked_burned_raw:"gt.0",updated_at:`eq.${protocol.updated_at}`}).then(count => {
+        if (protocol === countSnapshot) elements["top-blast-count"].textContent = formatInteger(count);
+      }).catch(() => {});
+      if (document.getElementById("onchain-proof").open) loadProof();
       renderActivityFeed(delayed);
       if (!renderIndexedChart(selectedEntryRaw) && !renderMarketChart()) showPendingMarket();
       if (selectedWallet) await refreshSelectedWallet(true);
-      else setMessage("Enter a wallet to load its verified BURNED position.");
+      else setMessage("Enter a wallet to load its verified TOPBLAST position.");
     } catch {
       // Hold the last finalized snapshot through a temporary read failure. The
       // timestamp stays visible, and no unverified value is introduced.
@@ -940,7 +966,7 @@
         clearPosition();
         if (!renderMarketChart()) showPendingMarket();
         elements["zone-wallet-count"].textContent = "—";
-        for (const id of ["global-reward-total", "market-reward-total", "total-epoch-count", "market-epoch-total", "next-epoch-time", "market-next-epoch", "wallet-next-epoch"]) elements[id].textContent = "—";
+        for (const id of ["global-reward-total", "market-reward-total", "market-epoch-total", "next-epoch-time", "market-next-epoch", "wallet-next-epoch"]) elements[id].textContent = "—";
         elements["data-status"].textContent = "CONNECTING";
         elements["leaderboard-status"].textContent = "AWAITING INDEX";
         renderActivityBanner();
@@ -970,8 +996,9 @@
       return;
     }
     selectedWallet = wallet;
+    if(protocol)renderIndexedChart();
     if (!isPublicIndexConfigured()) {
-      setMessage("Wallet address accepted. BURNED position tracking will be available when the new market is connected.");
+      setMessage("Wallet address accepted. TOPBLAST position tracking will be available when the new market is connected.");
       return;
     }
     const button = elements["wallet-form"].querySelector("button");
@@ -1005,7 +1032,7 @@
   if (validSolanaAddress(config.topblastMint || "")) {
     elements["copy-ca"].hidden = false;
     elements["copy-ca"].textContent = `CA ${shortWallet(config.topblastMint)}`;
-    elements["copy-ca"].setAttribute("aria-label", "Copy BURNED contract address");
+    elements["copy-ca"].setAttribute("aria-label", "Copy TOPBLAST contract address");
     elements["copy-ca"].addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(config.topblastMint);
@@ -1015,12 +1042,18 @@
         elements["copy-ca"].textContent = "COPY FAILED";
       }
     });
-    for (const link of document.querySelectorAll("[data-ember-link]")) link.href = `https://embercurve.fun/t/${encodeURIComponent(config.topblastMint)}`;
+    for (const link of document.querySelectorAll("[data-contract-link]")) {
+      link.href = `https://solscan.io/token/${config.topblastMint}`;
+      link.hidden = false;
+    }
+    for (const link of document.querySelectorAll("[data-stonk-link]")) link.href = `https://www.stonkfun.xyz/token/${encodeURIComponent(config.topblastMint)}`;
     for (const link of document.querySelectorAll("[data-buy-link]")) {
-      link.href = `https://embercurve.fun/t/${encodeURIComponent(config.topblastMint)}`;
+      link.href = `https://www.stonkfun.xyz/token/${encodeURIComponent(config.topblastMint)}`;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
-      link.textContent = "BUY $BURNED";
+      link.textContent = "BUY $BLAST";
+      link.removeAttribute("aria-disabled");
+      link.removeAttribute("aria-label");
     }
   }
 
@@ -1031,11 +1064,15 @@
     if (!elements["top-activity"].contains(event.relatedTarget)) activityBannerPaused = false;
   });
 
-  walletMap = new window.BurnedWalletMap.View({svg:document.getElementById('wallet-entry-map'),detail:document.getElementById('wallet-map-detail'),summary:document.getElementById('wallet-map-summary'),formatPrice,formatAmount:formatDecimal,onSelect:wallet=>{elements['wallet-address'].value=wallet;elements['wallet-form'].requestSubmit();document.getElementById('account').scrollIntoView({behavior:reducedMotion?'auto':'smooth',block:'start'});}});
-  for(const button of document.querySelectorAll('[data-chart-view]'))button.addEventListener('click',()=>{chartView=button.dataset.chartView;elements['chart-shell'].dataset.view=chartView;for(const b of document.querySelectorAll('[data-chart-view]'))b.setAttribute('aria-pressed',String(b===button));document.querySelector('.wallet-map-help').hidden=chartView!=='wallets';document.getElementById('wallet-map-detail').hidden=chartView!=='wallets'||!walletMap.selected;renderIndexedChart(selectedEntryRaw);});
+  chartInteraction = new window.BlastChart.Interaction(elements['blast-chart'],document.getElementById('chart-crosshair-readout'),()=>renderIndexedChart(selectedEntryRaw),formatPrice);
+  for(const button of document.querySelectorAll('[data-chart-range]'))button.addEventListener('click',()=>{for(const b of document.querySelectorAll('[data-chart-range]'))b.setAttribute('aria-pressed',String(b===button));chartInteraction.setRange(Number(button.dataset.chartRange));});
+  document.getElementById('chart-reset').addEventListener('click',()=>chartInteraction.setRange(0));
+  walletMap = new window.BlastWalletMap.View({svg:document.getElementById('wallet-entry-map'),detail:document.getElementById('wallet-map-detail'),summary:document.getElementById('wallet-map-summary'),formatPrice,formatAmount:formatDecimal,onSelect:wallet=>{elements['wallet-address'].value=wallet;elements['wallet-form'].requestSubmit();document.getElementById('account').scrollIntoView({behavior:reducedMotion?'auto':'smooth',block:'start'});}});
+  for(const button of document.querySelectorAll('[data-chart-view]'))button.addEventListener('click',()=>{chartView=button.dataset.chartView;elements['chart-shell'].dataset.view=chartView;document.querySelector('.chart-timeframes').hidden=chartView!=='price';document.getElementById('chart-crosshair-readout').hidden=true;for(const b of document.querySelectorAll('[data-chart-view]'))b.setAttribute('aria-pressed',String(b===button));document.querySelector('.wallet-map-help').hidden=chartView!=='wallets';document.getElementById('wallet-map-detail').hidden=chartView!=='wallets'||!walletMap.selected;renderIndexedChart(selectedEntryRaw);});
   for(const button of document.querySelectorAll('[data-map-zoom]'))button.addEventListener('click',()=>walletMap.setZoom(button.dataset.mapZoom==='reset'?1:walletMap.zoom+(button.dataset.mapZoom==='in'?.5:-.5)));
   showPendingMarket();
   renderActivityBanner();
+  if(!config.topblastMint){elements['chart-mode'].textContent='BLAST MARKET NOT CONNECTED';elements['zone-status'].textContent='AWAITING LAUNCH';elements['zone-copy'].textContent='The verified BLAST contract will connect this chart.';document.getElementById('wallet-map-summary').textContent='NO VERIFIED BLAST ENTRIES YET';}
   loadMarketData();
   loadProtocol().then(loadActivity);
   window.setInterval(() => { if (!document.hidden) loadProtocol(); }, 15000);

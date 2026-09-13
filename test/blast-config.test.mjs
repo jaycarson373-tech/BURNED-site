@@ -1,0 +1,6 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {blastPublicConfig,STONK_MINT} from '../scripts/blast-config.mjs';
+test('new brand cannot inherit old market, keys or payment switch',()=>{const c=blastPublicConfig({PUBLIC_TOPBLAST_MINT:'4LYhX3kXcKr9rTHCN4c65Hfye2aTukri3JtBbwZhUQv9',BURNED_REWARDS_ACTIVE:'true',PUBLIC_BURNED_SUPABASE_URL:'https://old.supabase.co'});assert.equal(c.topblastMint,'');assert.equal(c.rewardMint,STONK_MINT);assert.equal(c.quoteDecimals,9);assert.equal(c.projectId,'blast-stonk-v1');assert.equal(c.rewardsActive,false);assert.equal(c.supabaseUrl,'');});
+test('old market and wrong quote fail closed',()=>{assert.throws(()=>blastPublicConfig({PUBLIC_BLAST_MINT:'ApS8Sb3oXpFV5zcok9ii83PhCo2DSUV3N5UMzcYcWhHs'}));assert.throws(()=>blastPublicConfig({PUBLIC_BLAST_STONK_MINT:'So11111111111111111111111111111111111111112'}));assert.throws(()=>blastPublicConfig({BLAST_PROJECT_ID:'burned-ember-v1'}));});
+test('market, public index and rewards require explicit separate verification',()=>{assert.throws(()=>blastPublicConfig({BLAST_MARKET_VERIFIED:'true'}));assert.throws(()=>blastPublicConfig({PUBLIC_BLAST_MINT:'11111111111111111111111111111112',BLAST_INDEX_VERIFIED:'true'}));assert.equal(blastPublicConfig({BLAST_REWARDS_ACTIVE:'true'}).rewardsActive,false);});

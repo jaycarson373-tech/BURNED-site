@@ -3,58 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#fffdf9">
-  <meta name="color-scheme" content="light">
-  <title>BURNED | Get Burned. Get $EMBER.</title>
-  <meta name="description" content="Get burned. Get $EMBER. Buy $BURNED with $EMBER, fall below your verified entry, and share fee-funded $EMBER rewards in the Burn Zone.">
-  <link rel="canonical" href="https://www.burned.live/">
-  <meta property="og:title" content="BURNED | Get Burned. Get $EMBER.">
-  <meta property="og:description" content="Your entry is the line. Eligible positions below it share fee-funded $EMBER rewards.">
+  <meta name="theme-color" content="#131719">
+  <meta name="color-scheme" content="dark light">
+  <title>Topblast | Every Entry Has a Story</title>
+  <meta name="description" content="Buy $BLAST with $STONK. Fall below your verified average entry and become eligible for fee-funded $STONK rewards in the Blast Zone.">
+  <meta property="og:title" content="Topblast | Every Entry Has a Story">
+  <meta property="og:description" content="Your entry is the line. Eligible positions below it share fee-funded $STONK rewards.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://www.burned.live/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta property="og:image" content="https://www.burned.live/burned-banner.png">
-  <meta property="og:image:alt" content="BURNED. Get burned. Get $EMBER.">
-  <meta name="twitter:image" content="https://www.burned.live/burned-banner.png">
-  <meta name="twitter:title" content="BURNED | Get Burned. Get $EMBER.">
-  <meta name="twitter:description" content="Get burned. Get $EMBER. $BURNED × $EMBER.">
-  <link rel="icon" href="/favicon-burned.png" type="image/png">
-  <link rel="apple-touch-icon" href="/apple-touch-icon-burned.png">
+  <meta property="og:image:alt" content="TOPBLAST. Buy $BLAST. Watch your entry.">
+  <meta name="twitter:title" content="Topblast | Every Entry Has a Story">
+  <meta name="twitter:description" content="Buy $BLAST. Watch your entry. $BLAST × $STONK.">
+  <link rel="icon" href="/favicon-blast.png" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon-blast.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/topblast.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800;900&amp;family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
   <script src="/runtime-config.js" defer></script>
   <script src="/index-data.js" defer></script>
   <script src="/reward-cycle.js" defer></script>
-  <script src="/burn-map.js" defer></script>
+  <script src="/blast-map.js" defer></script>
+  <script src="/chart-interaction.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to content</a>
 
   <header class="site-header">
-    <div class="top-activity" id="top-activity" aria-label="Recent verified BURNED buys">
+    <div class="top-activity" id="top-activity" aria-label="Recent verified TOPBLAST buys">
       <div class="wrap top-activity-inner">
-        <span class="top-activity-label">$BURNED / $EMBER</span>
+        <span class="top-activity-label">$BLAST / $STONK</span>
         <a class="top-activity-event" id="top-activity-event" href="#watch">
-          <img src="/burned-logo.png" width="22" height="22" alt="">
-          <span id="top-activity-copy">GET BURNED. GET $EMBER.</span>
+          <img src="/topblast-logo.png" width="22" height="22" alt="">
+          <span id="top-activity-copy">GET BLASTED. GET $STONK.</span>
         </a>
         <span class="top-activity-state" id="top-activity-state">VERIFIED ACTIVITY</span>
       </div>
       <div class="sr-only" id="activity-announcer" role="status" aria-live="polite" aria-atomic="true"></div>
     </div>
     <div class="wrap header-inner">
-      <a class="brand" href="#top" aria-label="BURNED home">
-        <img class="brand-logo" src="/burned-logo.png" width="46" height="46" alt="">
-        <span>BURNED</span>
+      <a class="brand" href="#top" aria-label="TOPBLAST home">
+        <img class="brand-logo" src="/topblast-logo.png" width="46" height="46" alt="">
+        <span>Topblast<span class="brand-period">.</span></span>
       </a>
       <nav aria-label="Main navigation">
         <a class="nav-link" href="#watch">Rewards</a>
         <a class="nav-link" href="#account">Wallet</a>
         <button class="header-link ca-copy" id="copy-ca" type="button" hidden>CA</button>
-        <a class="header-link social-x" data-x-link aria-label="BURNED on X" target="_blank" rel="noopener noreferrer" hidden>X</a>
+        <a class="header-link social-x" data-x-link aria-label="TOPBLAST on X" target="_blank" rel="noopener noreferrer" hidden>X</a>
       </nav>
     </div>
   </header>
@@ -62,34 +60,35 @@
   <main id="main">
     <section class="hero wrap" id="top" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <img class="hero-mark" src="/burned-logo.png" width="172" height="172" alt="BURNED ember logo">
-        <p class="eyebrow"><span class="tiny-mark" aria-hidden="true"></span>$BURNED / $EMBER · METEORA</p>
-        <h1 id="hero-title">GET BURNED.<br><span>GET $EMBER.</span></h1>
-        <p class="hero-description">Your entry is the line.<br>Below it, you’re in the Burn Zone.</p>
-        <p class="hero-support">Buy $BURNED with $EMBER. Eligible positions below their verified average entry share fee-funded $EMBER rewards.</p>
+        <img class="hero-mark" src="/topblast-logo.png" width="172" height="172" alt="Topblast impact logo">
+        <p class="eyebrow"><span class="tiny-mark" aria-hidden="true"></span>$BLAST / $STONK</p>
+        <p class="launch-label">THE ENTRY IS JUST THE BEGINNING.</p><h1 id="hero-title">Topblast<span>.</span></h1>
+        <p class="hero-description">Buy $BLAST with $STONK. Track your entry. When price falls below it, eligible positions enter the Blast Zone.</p>
+        <p class="hero-support campaign-line">YOUR POSITION. ON THE RECORD.</p>
         <div class="hero-actions">
-          <a class="primary-button" data-buy-link href="#blast-zone">EXPLORE THE BURN ZONE</a>
-          <a class="secondary-button" href="#account">CHECK WALLET</a>
+          <a class="primary-button" data-buy-link role="link" aria-disabled="true" aria-label="Buy TOPBLAST, awaiting verified contract">BUY $BLAST</a>
+          <a class="secondary-button" href="#account">CHECK YOUR BLAST</a>
         </div>
         <dl class="hero-facts">
-          <div><dt>PAIR</dt><dd>$BURNED / $EMBER</dd></div>
-          <div><dt>REWARD ASSET</dt><dd>$EMBER</dd></div>
-          <div><dt>REWARD EPOCH</dt><dd id="hero-next-epoch">~15 MIN</dd></div>
+          <div><dt>PAIR</dt><dd>$BLAST / $STONK</dd></div>
+          <div><dt>FEE</dt><dd id="verified-fee">—</dd></div>
+          <div><dt>EPOCH</dt><dd id="hero-next-epoch">~15 MIN</dd></div>
         </dl>
       </div>
 
       <section class="reward-visual blast-zone-card" id="blast-zone" aria-labelledby="blast-zone-title">
         <div class="visual-topline">
-          <div><span class="status-light" aria-hidden="true"></span><span id="blast-zone-title">BURN ZONE</span></div>
+          <div><span class="status-light" aria-hidden="true"></span><span id="blast-zone-title">THE BLAST ZONE</span></div>
           <span class="data-mode" id="chart-mode">CONNECTING TO INDEX</span>
         </div>
-        <div class="chart-view-tools"><div role="group" aria-label="Burn Zone view"><button type="button" data-chart-view="wallets" aria-pressed="true">WALLET MAP</button><button type="button" data-chart-view="price" aria-pressed="false">PRICE HISTORY</button></div><span id="wallet-map-summary">LOADING WALLET ENTRIES</span></div>
+        <div class="chart-view-tools"><div role="group" aria-label="Blast Zone view"><button type="button" data-chart-view="wallets" aria-pressed="true">TOP BLASTERS</button><button type="button" data-chart-view="price" aria-pressed="false">PRICE CHART</button></div><span id="wallet-map-summary">WAITING FOR VERIFIED BLAST ENTRIES</span></div>
+        <div class="chart-timeframes" role="group" aria-label="Price chart timeframe" hidden><button data-chart-range="60">1M</button><button data-chart-range="300">5M</button><button data-chart-range="900">15M</button><button data-chart-range="3600">1H</button><button data-chart-range="14400">4H</button><button data-chart-range="0" aria-pressed="true">ALL</button><button id="chart-reset">RESET VIEW</button></div>
         <div class="chart-shell" id="chart-shell" data-state="clear" data-view="wallets">
           <svg id="wallet-entry-map" viewBox="0 0 720 420" role="group" tabindex="0" aria-label="Loading verified wallet entries"></svg>
-          <div class="wallet-map-key"><span class="key-burned">BURNED</span><span class="key-clear">CLEAR</span><span class="key-excluded">EXCLUDED</span></div>
+          <div class="wallet-map-key"><span class="key-burned">BLASTED</span><span class="key-clear">CLEAR</span><span class="key-excluded">EXCLUDED</span></div>
           <div class="wallet-map-zoom" role="group" aria-label="Wallet map zoom"><button type="button" data-map-zoom="in" aria-label="Zoom in on wallet entries">+</button><button type="button" data-map-zoom="out" aria-label="Zoom out on wallet entries">−</button><button type="button" data-map-zoom="reset">RESET</button></div>
-          <img class="chart-logo" src="/burned-logo.png" width="96" height="96" alt="">
-          <svg class="blast-chart" id="blast-chart" viewBox="0 0 720 420" role="img" aria-label="Illustration of price moving above and below a tracked entry line">
+          <img class="chart-logo" src="/topblast-logo.png" width="96" height="96" alt="">
+          <svg class="blast-chart" id="blast-chart" viewBox="0 0 720 420" role="img" aria-label="Canonical price history; search a wallet to overlay its entry">
             <defs>
               <linearGradient id="blast-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ed541e" stop-opacity=".38"></stop><stop offset="1" stop-color="#321a14" stop-opacity=".05"></stop></linearGradient>
               <linearGradient id="price-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffbd52" stop-opacity=".22"></stop><stop offset="1" stop-color="#ed541e" stop-opacity="0"></stop></linearGradient>
@@ -104,57 +103,63 @@
             <path class="price-area" id="price-area" fill="url(#price-fill)"></path>
             <line class="entry-line" id="entry-line" x1="0" y1="190" x2="720" y2="190"></line>
             <path class="price-line" id="price-line"></path>
-            <g class="buy-markers" id="buy-markers" aria-label="Verified BURNED buys"></g>
+            <g class="buy-markers" id="buy-markers" aria-label="Verified TOPBLAST buys"></g>
             <circle class="price-point-halo" id="price-point-halo" cx="700" cy="160" r="13"></circle>
             <circle class="price-point" id="price-point" cx="700" cy="160" r="5" filter="url(#point-glow)"></circle>
           </svg>
           <span class="entry-label">YOUR ENTRY</span>
           <span class="current-label" id="current-label">CURRENT PRICE</span>
-          <span class="zone-label">BURN ZONE</span>
-          <div class="blast-alert" id="blast-alert" hidden aria-live="polite"><span>BURNED</span><b id="blast-alert-wallet">—</b></div>
-          <div class="blast-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <span class="zone-label">BLAST ZONE</span>
+          <div class="blast-alert" id="blast-alert" hidden aria-live="polite"><span>Topblast<span class="brand-period">.</span></span><b id="blast-alert-wallet">—</b></div>
+          <span class="entry-pulse" aria-hidden="true"></span>
         </div>
+        <output id="chart-crosshair-readout" class="chart-readout" hidden></output>
         <div class="wallet-map-detail" id="wallet-map-detail" hidden><div><strong data-wallet-address></strong><span data-wallet-status></span></div><div><small>VERIFIED ENTRY</small><strong data-wallet-entry></strong></div><span data-wallet-depth></span><button type="button">OPEN WALLET</button></div>
         <div class="zone-state">
-          <div><span class="micro-label">PRICE VS ENTRY</span><strong id="zone-status">DATA PENDING</strong></div>
+          <div><span class="micro-label">POSITION STATE</span><strong id="zone-status">DATA PENDING</strong></div>
           <div class="chart-quote"><span class="micro-label">CURRENT PRICE</span><strong id="chart-price">—</strong></div>
-          <p id="zone-copy">Waiting for the canonical BURNED price.</p>
+          <p id="zone-copy">Waiting for the canonical TOPBLAST price.</p>
         </div>
-        <div class="preview-controls" id="preview-controls" hidden role="group" aria-label="Explore the Burn Zone mechanic"><button type="button" data-preview="clear" aria-pressed="false">ABOVE ENTRY</button><button type="button" data-preview="burned" aria-pressed="true">BELOW ENTRY</button></div>
-        <p class="wallet-map-help">Each dot is a verified wallet entry. Above the current price line = underwater. Tap a dot to inspect. Entry prices use a logarithmic scale; horizontal spacing separates wallets.</p>
+        <div class="preview-controls" id="preview-controls" hidden role="group" aria-label="Explore the Blast Zone mechanic"><button type="button" data-preview="clear" aria-pressed="false">ABOVE ENTRY</button><button type="button" data-preview="burned" aria-pressed="true">BELOW ENTRY</button></div>
+        <p class="wallet-map-help">Dots show each wallet’s return against its verified entry. Below 0% is the Blast Zone. Tap a wallet for entry and loss details. Vertical spacing uses a compressed percentage scale.</p>
         <p class="visual-caption" id="chart-caption">No unverified price or position data is shown.</p>
         <a class="chart-wallet-link" href="#account">SEARCH WALLET <span>Find your tracked entry</span></a>
       </section>
     </section>
 
-    <section class="market-strip" aria-label="BURNED market and reward data">
+    <section class="stonk-market wrap" aria-labelledby="stonk-market-title">
+      <div class="stonk-market-heading"><div><p class="eyebrow">THE OTHER SIDE OF THE PAIR</p><h2 id="stonk-market-title">STONK market<span>.</span></h2><p>The paired asset. Its own market.</p></div><div class="stonk-price"><strong id="stonk-chart-price">—</strong><span id="stonk-chart-change">—</span><small id="stonk-chart-updated">Loading verified market data</small></div></div>
+      <div id="stonk-chart-container" class="stonk-chart-container"><iframe id="stonk-market-frame" title="Interactive STONK market price chart from Dexscreener" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-write" src="https://dexscreener.com/solana/zxTpi4BtaWX3mgdAPoezkMD1hxx8CdeCfrqXMWvSCLX?embed=1&amp;loadChartSettings=0&amp;trades=0&amp;info=0&amp;theme=dark&amp;chartStyle=1&amp;chartType=usd&amp;interval=15"></iframe></div>
+      <p class="market-source">STONK / SOL market · prices shown in USD · <a href="https://dexscreener.com/solana/zxTpi4BtaWX3mgdAPoezkMD1hxx8CdeCfrqXMWvSCLX" target="_blank" rel="noopener noreferrer">Open chart</a>. This chart does not determine BLAST eligibility.</p>
+    </section>
+
+    <section class="market-strip" aria-label="TOPBLAST market and reward data">
       <div class="wrap">
         <div class="market-strip-status"><span class="status-light" aria-hidden="true"></span><span id="market-data-status">LOADING VERIFIED MARKET DATA</span></div>
         <dl class="market-strip-grid">
-          <div><dt>BURNED PRICE</dt><dd id="market-topblast-price">—</dd></div>
-          <div><dt>BURNED 24H</dt><dd id="market-topblast-move">—</dd></div>
-          <div><dt>EMBER PRICE</dt><dd id="market-ray-price">—</dd></div>
-          <div><dt>EMBER 24H</dt><dd id="market-ray-move">—</dd></div>
-          <div><dt>REWARD ASSET</dt><dd>$EMBER</dd></div>
-          <div><dt>$EMBER AIRDROPPED</dt><dd id="market-reward-total">—</dd></div>
+          <div><dt>TOPBLAST PRICE</dt><dd id="market-topblast-price">—</dd></div>
+          <div><dt>TOPBLAST 24H</dt><dd id="market-topblast-move">—</dd></div>
+          <div><dt>STONK PRICE</dt><dd id="market-ray-price">—</dd></div>
+          <div><dt>STONK 24H</dt><dd id="market-ray-move">—</dd></div>
+          <div><dt>REWARD ASSET</dt><dd>$STONK</dd></div>
+          <div><dt>$STONK AIRDROPPED</dt><dd id="market-reward-total">—</dd></div>
           <div><dt>TOTAL EPOCHS</dt><dd id="market-epoch-total">—</dd></div>
           <div><dt>NEXT EPOCH</dt><dd id="market-next-epoch">—</dd></div>
         </dl>
-        <p>USD prices and 24-hour movement come from Jupiter. Entry, Burn Zone status, epochs and airdrops come from the finalized BURNED index.</p>
+        <p>USD quotes come from StonkFun. The STONK chart is supplied by Dexscreener. Entry, Blast Zone status, epochs and airdrops come from the finalized TOPBLAST index.</p>
       </div>
     </section>
 
     <section class="watch-section" id="watch" aria-labelledby="watch-title">
       <div class="wrap">
         <div class="watch-heading">
-          <div><p class="eyebrow"><span class="tiny-mark" aria-hidden="true"></span>FINALIZED FEED</p><h2 id="watch-title">BELOW ENTRY.<br><span>ON THE RECORD.</span></h2></div>
+          <div><p class="eyebrow"><span class="tiny-mark" aria-hidden="true"></span>ONCHAIN, IN THE OPEN</p><h2 id="watch-title">The top.<br><span>On the record.</span></h2></div>
           <p>Tracked positions and confirmed rewards.<br>No sample wallets. No fake activity.</p>
         </div>
         <dl class="watch-totals">
-          <div><dt>WALLETS IN ZONE</dt><dd id="zone-wallet-count">—</dd></div>
-          <div><dt>VERIFIED BUYS INDEXED</dt><dd id="top-blast-count">—</dd></div>
-          <div><dt>TOTAL $EMBER AIRDROPPED</dt><dd id="global-reward-total">—</dd></div>
-          <div><dt>TOTAL EPOCHS</dt><dd id="total-epoch-count">—</dd></div>
+          <div><dt>WALLETS IN BLAST ZONE</dt><dd id="zone-wallet-count">—</dd></div>
+          <div><dt>TRACKED POSITIONS</dt><dd id="top-blast-count">—</dd></div>
+          <div><dt>TOTAL $STONK AIRDROPPED</dt><dd id="global-reward-total">—</dd></div>
           <div><dt>NEXT EPOCH</dt><dd id="next-epoch-time">—</dd></div>
         </dl>
         <div class="reward-cycle" aria-label="Reward cycle">
@@ -164,23 +169,28 @@
         </div>
         <div class="watch-grid">
           <section class="leaderboard-panel" aria-labelledby="leaderboard-title">
-            <div class="panel-head"><h3 id="leaderboard-title">IN THE BURN ZONE</h3><span id="leaderboard-status">AWAITING INDEX</span></div>
-            <div class="leaderboard-columns" aria-hidden="true"><span>RANK</span><span>WALLET / ENTRY</span><span>BURN DEPTH</span></div>
-            <ol class="leaderboard-list" id="leaderboard-list"><li class="empty-row"><span>—</span><p>No indexed positions yet.</p><strong>—</strong></li></ol>
+            <div class="panel-head"><h3 id="leaderboard-title">TOP BLASTERS</h3><span id="leaderboard-status">AWAITING INDEX</span></div>
+            <div class="leaderboard-columns" aria-hidden="true"><span>RANK</span><span>WALLET</span><span>ENTRY · $STONK</span><span>BLAST DEPTH</span></div>
+            <ol class="leaderboard-list" id="leaderboard-list"><li class="empty-row"><span>—</span><p>No indexed positions yet.</p><span>—</span><strong>—</strong></li></ol>
           </section>
           <section class="airdrop-panel" aria-labelledby="feed-title">
-            <div class="panel-head feed-head"><h3 id="feed-title">BURN FEED</h3><span id="feed-status">UPDATES EVERY MINUTE</span></div>
+            <div class="panel-head feed-head"><h3 id="feed-title">BLAST FEED</h3><span id="feed-status">FINALIZED ACTIVITY</span></div>
             <div class="airdrop-feed" id="activity-feed"><div class="empty-feed"><span class="feed-pulse" aria-hidden="true"></span><p>Waiting for a verified buy or confirmed reward.</p></div></div>
           </section>
         </div>
+        <details class="onchain-proof" id="onchain-proof">
+          <summary>ONCHAIN PROOF</summary>
+          <dl class="proof-identities"><div><dt>PRODUCTION CA</dt><dd id="proof-ca">Not configured</dd></div><div><dt>REWARD TOKEN</dt><dd id="proof-reward-mint">Not configured</dd></div></dl>
+          <div class="proof-columns"><div><h3>SNAPSHOTS</h3><div id="proof-snapshots"><p>No indexed snapshots.</p></div></div><div><h3>CONFIRMED TRANSACTIONS</h3><div id="proof-transactions"><p>No verified fee claims or $STONK distributions indexed.</p></div></div></div>
+        </details>
       </div>
     </section>
 
     <section class="account-section wrap" id="account" aria-labelledby="account-title">
       <div class="account-intro">
-        <p class="eyebrow"><span class="tiny-mark" aria-hidden="true"></span>WALLET LOOKUP</p>
-        <h2 id="account-title">YOUR POSITION.<br><span>YOUR LINE.</span></h2>
-        <p>Search a Solana wallet to see its tracked entry, current state and confirmed $EMBER airdrops.</p>
+        <p class="eyebrow"><span class="tiny-mark" aria-hidden="true"></span>FIND YOUR BLAST</p>
+        <h2 id="account-title">Find your<br><span>position.</span></h2>
+        <p>Search a Solana wallet to see its tracked entry, current state and confirmed $STONK airdrops.</p>
       </div>
       <div class="account-console">
         <form class="wallet-form" id="wallet-form" novalidate>
@@ -193,38 +203,39 @@
         </form>
         <div class="account-statusbar"><span><i aria-hidden="true"></i><b id="data-status">DATA NOT CONNECTED</b></span><span id="indexed-time">FINALIZED ONCHAIN DATA ONLY</span></div>
         <dl class="position-grid" id="position-grid" aria-live="polite">
-          <div><dt>TRACKED $BURNED</dt><dd id="tracked-balance">—</dd></div>
-          <div><dt>TRACKED ENTRY</dt><dd id="tracked-entry">—</dd></div>
+          <div><dt>TRACKED $BLAST</dt><dd id="tracked-balance">—</dd></div>
+          <div><dt>VERIFIED AVERAGE ENTRY</dt><dd id="tracked-entry">—</dd></div>
           <div><dt>CURRENT PRICE</dt><dd id="current-price">—</dd></div>
-          <div><dt>POSITION</dt><dd id="position-change">—</dd></div>
+          <div><dt>POSITION %</dt><dd id="position-change">—</dd></div>
           <div><dt>STATUS</dt><dd id="position-status">—</dd></div>
-          <div><dt>BURN DEPTH</dt><dd id="blast-depth">—</dd></div>
+          <div><dt>BLAST DEPTH</dt><dd id="blast-depth">—</dd></div>
           <div><dt>NEXT EPOCH</dt><dd id="wallet-next-epoch">—</dd></div>
-          <div class="airdrop-total"><dt>TOTAL $EMBER RECEIVED</dt><dd id="total-received">—</dd></div>
+          <div class="airdrop-total"><dt>TOTAL $STONK AIRDROPPED</dt><dd id="total-received">—</dd></div>
         </dl>
         <div class="history-panel">
-          <div class="panel-head"><h3>REWARD HISTORY</h3><span id="history-status">SEARCH WALLET</span></div>
-          <div class="history-head" aria-hidden="true"><span>EPOCH</span><span>$EMBER</span><span>TX</span></div>
+          <div class="panel-head"><h3>AIRDROP HISTORY</h3><span id="history-status">SEARCH WALLET</span></div>
+          <div class="history-head" aria-hidden="true"><span>EPOCH</span><span>$STONK</span><span>TX</span></div>
           <div class="history-list" id="reward-history"><p>No confirmed rewards loaded.</p></div>
         </div>
+        <p class="account-note">Eligible positions share fee-funded $STONK rewards according to the live reward rules.</p>
         <p class="account-note" id="account-note">Verified pool buys create tracked entry. Incoming transfers create no basis. Selling or sending excludes the wallet for the epoch. Airdrops are weighted by current unrealized loss.</p>
       </div>
     </section>
 
     <section class="how-section wrap" id="how-it-works" aria-labelledby="how-title">
       <div class="section-intro">
-        <div><p class="eyebrow">HOW IT WORKS</p><h2 id="how-title">BELOW ENTRY.<br><span>FEEL THE HEAT.</span></h2></div>
+        <div><p class="eyebrow">HOW IT WORKS</p><h2 id="how-title">YOUR ENTRY<br><span>SETS THE LINE.</span></h2></div>
         <p>One mechanic.<br>Three steps.</p>
       </div>
       <div class="steps">
-        <article class="step"><div class="step-top"><span>01</span><i aria-hidden="true"></i></div><p class="step-label">SET YOUR ENTRY</p><h3>Buy $BURNED with $EMBER.</h3><span class="step-foot">ESTABLISH ENTRY</span></article>
-        <article class="step"><div class="step-top"><span>02</span><i aria-hidden="true"></i></div><p class="step-label">GET BURNED</p><h3>Fall below your tracked entry.</h3><span class="step-foot">ENTER THE BURN ZONE</span></article>
-        <article class="step"><div class="step-top"><span>03</span><i aria-hidden="true"></i></div><p class="step-label">GET $EMBER</p><h3>Eligible positions share fee-funded $EMBER.</h3><span class="step-foot">~15 MIN EPOCHS</span></article>
+        <article class="step"><div class="step-top"><span>01</span><i aria-hidden="true"></i></div><p class="step-label">BUY</p><h3>Buy $BLAST with $STONK.</h3><span class="step-foot">SET YOUR ENTRY</span></article>
+        <article class="step"><div class="step-top"><span>02</span><i aria-hidden="true"></i></div><p class="step-label">GET BLASTED</p><h3>Fall below your verified average entry.</h3><span class="step-foot">ENTER THE BLAST ZONE</span></article>
+        <article class="step"><div class="step-top"><span>03</span><i aria-hidden="true"></i></div><p class="step-label">GET $STONK</p><h3>Eligible Blast Zone positions share fee-funded $STONK.</h3><span class="step-foot">~15 MIN EPOCHS</span></article>
       </div>
     </section>
 
     <section class="rules-section wrap" id="rules" aria-labelledby="rules-title">
-      <div class="rules-intro"><p class="eyebrow">BURN ZONE RULES</p><h2 id="rules-title">THE ENTRY<br><span>HAS TO BE REAL.</span></h2></div>
+      <div class="rules-intro"><p class="eyebrow">BLAST ZONE RULES</p><h2 id="rules-title">Real entries.<br><span>Clear rules.</span></h2></div>
       <dl class="rules-list">
         <div><dt>VERIFIED POOL BUY</dt><dd>Creates tracked cost basis</dd><span class="rule-positive">COUNTS</span></div>
         <div><dt>ADDITIONAL BUY</dt><dd>Updates weighted average entry</dd><span>UPDATES</span></div>
@@ -234,26 +245,27 @@
     </section>
 
     <section class="closing wrap" aria-labelledby="closing-title">
-      <img class="closing-logo" src="/burned-logo.png" width="112" height="112" alt="">
-      <div><p class="eyebrow">$BURNED / $EMBER</p><h2 id="closing-title">BELOW YOUR LINE.<br><span>STILL IN.</span></h2><p>Get burned. Get $EMBER.</p></div>
-      <a class="primary-button" data-buy-link href="#watch">WATCH REWARDS</a>
+      <img class="closing-logo" src="/topblast-logo.png" width="112" height="112" alt="">
+      <div><h2 id="closing-title">Every entry<br><span>has a story.</span></h2><p>$BLAST / $STONK</p></div>
+      <div class="closing-actions"><a class="primary-button" data-buy-link role="link" aria-disabled="true" aria-label="Buy TOPBLAST, awaiting verified contract">BUY $BLAST</a><a class="secondary-button" href="#watch">WATCH AIRDROPS</a></div>
     </section>
   </main>
 
   <footer class="site-footer">
     <div class="wrap">
       <div class="footer-top">
-        <a class="brand brand-small" href="#top" aria-label="BURNED home"><img class="brand-logo" src="/burned-logo.png" width="40" height="40" alt=""><span>BURNED</span></a>
-        <p>SOLANA · EMBER · METEORA</p>
+        <a class="brand brand-small" href="#top" aria-label="TOPBLAST home"><img class="brand-logo" src="/topblast-logo.png" width="40" height="40" alt=""><span>Topblast<span class="brand-period">.</span></span></a>
+        <p>SOLANA · STONK</p>
         <nav aria-label="Project links">
-          <a data-dexscreener-link href="https://dexscreener.com/solana" target="_blank" rel="noopener noreferrer">DEXSCREENER</a>
-          <a data-ember-link href="https://embercurve.fun/" target="_blank" rel="noopener noreferrer">EMBER</a>
-          <a data-x-link aria-label="BURNED on X" target="_blank" rel="noopener noreferrer" hidden>X</a>
-          <a href="https://www.burned.live/">burned.live</a>
-          <a href="https://www.meteora.ag/" target="_blank" rel="noreferrer">METEORA</a>
+          <a data-dexscreener-link hidden target="_blank" rel="noopener noreferrer">DEXSCREENER</a>
+          <a data-stonk-link href="https://www.stonkfun.xyz/" target="_blank" rel="noopener noreferrer">STONK</a>
+          <a data-x-link aria-label="TOPBLAST on X" target="_blank" rel="noopener noreferrer" hidden>X</a>
+
+          <a data-contract-link target="_blank" rel="noopener noreferrer" hidden>CONTRACT</a>
+
         </nav>
       </div>
-      <p class="fine-print">Rewards use verified buys and finalized snapshots. For the next payout, eligible positions must be worth at least $20. Wallets holding more than 4% of BURNED supply are excluded. Confirmation can follow the snapshot. Rewards are not guaranteed and do not cover trading losses.</p>
+      <p class="fine-print">Rewards use verified buys and finalized snapshots. For the next payout, eligible positions must be worth at least $20. Wallets holding more than 4% of TOPBLAST supply are excluded. Confirmation can follow the snapshot. Rewards are not guaranteed and do not cover trading losses.</p>
     </div>
   </footer>
 </body>

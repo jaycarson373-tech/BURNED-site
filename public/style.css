@@ -761,6 +761,54 @@ body::before { display: none; }
 .chart-wallet-link span { color:#c8c0b7; font-size:.72rem; font-weight:400; letter-spacing:0; }
 .chart-wallet-link:hover { background:rgba(255,197,94,.06); }
 
+/* BURNED editorial refinement. Existing layout and interaction are preserved. */
+.campaign-line { color:var(--ink); font-size:.72rem; font-weight:800; letter-spacing:.1em; margin-top:1.25rem; }
+.hero-mark { opacity:1; width:80px; height:80px; top:-5rem; right:0; }
+.hero h1 { margin-top:1rem; }
+.primary-button[aria-disabled="true"] { cursor:not-allowed; }
+.primary-button[aria-disabled="true"]:hover { transform:none; }
+.watch-totals { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.leaderboard-columns,.leaderboard-list li { grid-template-columns:32px minmax(0,1fr) minmax(70px,.8fr) minmax(76px,.8fr); }
+.leaderboard-entry { color:#e8ddd1; font-size:.75rem; overflow-wrap:anywhere; }
+.leaderboard-list li strong { font-size:.7rem; }
+.closing-actions { display:grid; gap:.8rem; text-align:center; }
+.closing-actions .secondary-button { color:#f0e7dc; border-color:#62564c; }
+.onchain-proof { margin-top:1.6rem; border-top:1px solid var(--night-line); color:#d6cec5; }
+.onchain-proof summary { cursor:pointer; min-height:48px; padding:1rem 0; font-size:.7rem; font-weight:800; letter-spacing:.1em; }
+.proof-identities { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+.proof-identities dt,.proof-columns h3 { font-size:.62rem; color:#b1a99f; letter-spacing:.08em; }
+.proof-identities dd { margin:.7rem 0; overflow-wrap:anywhere; font-size:.78rem; }
+.proof-columns { display:grid; grid-template-columns:1fr 1fr; gap:2rem; padding-bottom:1rem; }
+.proof-columns p { font-size:.78rem; color:#b1a99f; }
+.onchain-proof a { color:#ffc174; text-decoration:underline; text-underline-offset:3px; }
+.proof-row { display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6rem; padding:.85rem 0; border-top:1px solid var(--night-line); font-size:.72rem; }
+.proof-row code { width:100%; overflow-wrap:anywhere; color:#aaa29a; font-size:.66rem; }
+.entry-pulse { position:absolute; pointer-events:none; left:0; top:var(--entry-y,45.24%); width:38px; height:2px; background:linear-gradient(90deg,transparent,#ffbf63); opacity:0; }
+.chart-shell.is-crossing .entry-pulse { animation:burn-entry-pulse .8s ease-out; }
+@keyframes burn-entry-pulse { 0% { opacity:0;left:0; } 20% { opacity:1; } 90% { opacity:1; } 100% { opacity:0;left:92%; } }
+@media(max-width:760px) {
+  .hero-mark { top:-.9rem; right:0; width:64px; height:64px; }
+  .hero h1 { margin-top:1.9rem; font-size:clamp(2.6rem,10.5vw,4rem); }
+  .hero-description { max-width:32rem; line-height:1.6; }
+  .hero-facts { grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:1.5rem; }
+  .hero-facts div { display:block; padding:.7rem .6rem; }
+  .hero-facts div:first-child { padding-left:0; }
+  .hero-facts div + div { padding-left:.6rem; border-top:0; border-left:1px solid var(--line); }
+  .hero-facts dd { margin-top:.55rem; font-size:.65rem; }
+  .watch-totals { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .watch-totals > div { display:block; min-height:92px; padding:.9rem; }
+  .watch-totals dd { margin-top:.75rem; }
+  .watch-totals > div + div { border-top:0; }
+  .watch-totals > div:nth-child(even) { border-left:1px solid var(--night-line); }
+  .watch-totals > div:nth-child(n+3) { border-top:1px solid var(--night-line); }
+  .proof-identities,.proof-columns { grid-template-columns:1fr; gap:1rem; }
+  .leaderboard-columns,.leaderboard-list li { gap:.4rem; grid-template-columns:23px minmax(70px,1fr) minmax(50px,.8fr) minmax(65px,.8fr); }
+  .leaderboard-columns { font-size:.5rem; }
+  .leaderboard-list li p,.leaderboard-entry,.leaderboard-list li strong { font-size:.65rem; }
+  .closing-actions { grid-column:1/-1; }
+}
+@media(prefers-reduced-motion:reduce) { .chart-shell.is-crossing .entry-pulse { animation:none; } }
+
 .reward-cycle { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin:1rem 0; padding:.9rem 0; border-block:1px solid var(--night-line); color:#f0e7dc; font-size:.68rem; }
 .reward-cycle b { font-size:.7rem; letter-spacing:.06em; }
 .reward-cycle small { display:block; margin-top:.4rem; color:#b6aca2; font-size:.66rem; }

@@ -1,32 +1,24 @@
-# BURNED public copy
+# Topblast · BLAST / STONK
 
 ## X bio
+Your position. On the record.
+$BLAST / $STONK.
+Real entries. Real receipts.
 
-Get burned. Get $EMBER.
-Your entry is the line.
-Below it, you’re in the Burn Zone.
-$BURNED × $EMBER
+## Description
+Buy $BLAST with $STONK and establish your verified average entry. Fall below it and enter the Blast Zone. Track positions, inspect wallet entries and verify completed rewards.
 
-## Project description
+## Launch post draft
+Topblast.
 
-Buy $BURNED with $EMBER. Your verified buys set your weighted average entry. Below that line, eligible positions enter the Burn Zone and share fee-funded $EMBER rewards. Incoming transfers create no entry. Selling or sending excludes the wallet for the epoch.
+Every entry has a story.
 
-## Relaunch announcement draft
+Buy $BLAST with $STONK. Your verified average entry becomes the line.
 
-BURNED.
+Below entry? You're in the Blast Zone.
 
-Your entry is the line.
+Watch the chart. Find your wallet. Follow completed rewards onchain.
 
-Buy with $EMBER. Fall below your verified average entry and you’re in the Burn Zone.
+$BLAST / $STONK
 
-Eligible underwater positions share fee-funded $EMBER rewards.
-
-Verified buys count. Transfers don’t create an entry. Sell or send and you sit out that epoch.
-
-Get burned. Get $EMBER.
-
-burned.live
-
-## Publication status
-
-This is relaunch copy, not confirmation of a live EMBER market. The new BURNED mint, EMBER mint, pool, funding route and isolated index still require verification. Do not publish a claim that rewards are live until a real new-market reward cycle succeeds. The old TOPBLAST/RAY payout history stays with its original market.
+Publish only after the new market and reward path have been verified. Do not claim rewards are active while payouts are paused.
