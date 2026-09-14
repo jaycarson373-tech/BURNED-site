@@ -2,3 +2,4 @@
 .buy-dot.blast-crossing{animation:buy-pulse .85s ease-out;background:var(--orange)}.buy-dot.recovery-crossing{animation:recovery-pulse .85s ease-out;background:var(--lime)}@keyframes recovery-pulse{0%{box-shadow:0 0 0 0 #a8cb7590}100%{box-shadow:0 0 0 18px #a8cb7500}}@media(prefers-reduced-motion:reduce){.buy-dot.blast-crossing,.buy-dot.recovery-crossing{animation:none}}
 .buy-dot::before{content:'';position:absolute;inset:-15px;border-radius:50%}.radar-plot{overflow-x:auto;overscroll-behavior-x:contain}.radar-plot svg{min-width:650px}
 .chart-empty{z-index:4;background:radial-gradient(ellipse at center,#14253be8 0,#101b2acc 38%,#101b2a26 72%,transparent 100%)}
+@media(max-width:800px){#wallet-form{order:2;flex:1 1 220px;min-width:220px}.buy-link{order:2;flex:0 0 auto}}
