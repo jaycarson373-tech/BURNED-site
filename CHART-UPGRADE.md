@@ -50,7 +50,7 @@ Market and reward statuses are separate. Missing or stale data does not generate
 
 ## Test results
 
-- Frontend: 65 passed, 0 failed. Includes DOM/chart API integration, exact-amount handling, snapshot freshness, quote-denominated crossing checks, marker clustering, reconnect pagination and historical viewport retention.
+- Frontend: 66 passed, 0 failed. Includes DOM/chart API integration, exact-amount handling, snapshot freshness, quote-denominated crossing checks, marker clustering, reconnect pagination and historical viewport retention.
 - Worker: 193 passed, 0 failed. Includes existing cost-basis, transfer/sell, reward and duplicate protection regressions; chart projection, export retries and embedded PostgreSQL OHLCV/permission checks.
 - Live new-BLAST buy, native browser/mobile gestures and new-market STONK reward: not verified. New mint and connected index are missing; browser connection is unavailable.
 - No funds spent and no payout settings enabled.
