@@ -24,5 +24,5 @@ export function burnedPublicConfig(env = {}) {
   const dexscreenerUrl = marketVerified && mint ? `https://dexscreener.com/solana/${mint}` : '';
   const reviewedEpoch = read('BURNED_REVIEWED_EPOCH');
   if (reviewedEpoch && !/^[1-9]\d{0,9}$/.test(reviewedEpoch)) throw new Error('Invalid reviewed epoch');
-  return { reviewedEpoch: reviewedEpoch ? Number(reviewedEpoch) : null, supabaseUrl: indexVerified ? supabaseUrl : '', supabaseKey: indexVerified ? supabaseKey : '', projectId, xUrl, topblastMint: marketVerified ? mint : '', rewardMint: marketVerified ? rewardMint : '', dexscreenerUrl, indexVerified, rewardsActive: indexVerified && read('BURNED_REWARDS_ACTIVE') === 'true' };
+  return { reviewedEpoch: reviewedEpoch ? Number(reviewedEpoch) : null, supabaseUrl: indexVerified ? supabaseUrl : '', supabaseKey: indexVerified ? supabaseKey : '', projectId, xUrl, topblastMint: marketVerified ? mint : '', rewardMint, dexscreenerUrl, indexVerified, rewardsActive: indexVerified && read('BURNED_REWARDS_ACTIVE') === 'true' };
 }

@@ -18,3 +18,9 @@ test('old mint, reward mint and project cannot be reused accidentally', () => {
 test('an active rewards flag cannot enable rewards without a verified market', () => {
   assert.equal(burnedPublicConfig({BURNED_REWARDS_ACTIVE:'true'}).rewardsActive, false);
 });
+test('verified EMBER reference and new X can be configured without enabling the BURNED market', () => {
+  const mint='5dvXTZ5qwgafnHtwu3Ls3QrWx1U4LQsFeCuJgkk4QEC6';
+  const config=burnedPublicConfig({PUBLIC_BURNED_EMBER_MINT:mint,PUBLIC_BURNED_X_URL:'https://x.com/GetBurned_'});
+  assert.equal(config.rewardMint,mint); assert.equal(config.xUrl,'https://x.com/GetBurned_');
+  assert.equal(config.topblastMint,''); assert.equal(config.indexVerified,false); assert.equal(config.rewardsActive,false);
+});
