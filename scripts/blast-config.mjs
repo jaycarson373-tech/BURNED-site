@@ -18,5 +18,5 @@ export function blastPublicConfig(env={}){
  const xUrl=read('PUBLIC_BLAST_X_URL'),siteUrl=read('PUBLIC_BLAST_SITE_URL');
  if(xUrl&&!/^https:\/\/(?:www\.)?x\.com\/[A-Za-z0-9_]{1,15}\/?$/.test(xUrl))throw new Error('Invalid X URL');
  if(siteUrl){const u=new URL(siteUrl);if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash)throw new Error('Invalid site URL');}
- return {name:'Topblast',ticker:'BLAST',quoteSymbol:'STONK',quoteDecimals:9,projectId,topblastMint:marketVerified?mint:'',rewardMint,indexVerified,marketVerified,rewardsActive:indexVerified&&read('BLAST_REWARDS_ACTIVE')==='true',reviewedEpoch:null,supabaseUrl:indexVerified?supabaseUrl:'',supabaseKey:indexVerified?supabaseKey:'',xUrl,siteUrl,dexscreenerUrl:marketVerified?`https://dexscreener.com/solana/${mint}`:''};
+ return {name:'Topblast',ticker:'BLAST',quoteSymbol:'STONK',quoteDecimals:9,projectId,topblastMint:marketVerified?mint:'',rewardMint:marketVerified?rewardMint:'',indexVerified,marketVerified,rewardsActive:indexVerified&&read('BLAST_REWARDS_ACTIVE')==='true',reviewedEpoch:null,supabaseUrl:indexVerified?supabaseUrl:'',supabaseKey:indexVerified?supabaseKey:'',xUrl,siteUrl,dexscreenerUrl:marketVerified?`https://dexscreener.com/solana/${mint}`:''};
 }
