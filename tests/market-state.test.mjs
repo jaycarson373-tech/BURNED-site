@@ -16,6 +16,8 @@ test('verified buys establish and update weighted average entry',()=>{
   assert.equal(state.status,'blasted');
   assert.equal(state.burnDepthBps,2500n);
   assert.equal(state.eligible,true);
+  assert.equal(ledger.positions.get(A.toLowerCase()).firstBuyAt,1);
+  assert.equal(ledger.positions.get(A.toLowerCase()).lastBuyAt,2);
 });
 
 test('partial sell preserves average entry and excludes the epoch',()=>{
@@ -36,6 +38,7 @@ test('full sell clears basis and rebuy creates a fresh entry',()=>{
   ]);
   const p=ledger.positions.get(A.toLowerCase());
   assert.deepEqual([p.trackedUnitsRaw,p.costQuoteRaw],[50n,150n]);
+  assert.equal(p.firstBuyAt,3);
   assert.equal(positionState(p,2n*10n**18n,ledger.epochExclusions,2).averageEntryRaw,3n*10n**18n);
 });
 

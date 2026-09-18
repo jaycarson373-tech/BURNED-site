@@ -12,7 +12,7 @@ function positive(value, label) {
 }
 
 function emptyPosition(wallet) {
-  return {wallet, trackedUnitsRaw: ZERO, costQuoteRaw: ZERO, rewardsRaw: ZERO, lastBuyAt: null, lastEventAt: null};
+  return {wallet, trackedUnitsRaw: ZERO, costQuoteRaw: ZERO, rewardsRaw: ZERO, firstBuyAt: null, lastBuyAt: null, lastEventAt: null};
 }
 
 function reduceBasis(position, amountRaw) {
@@ -21,6 +21,8 @@ function reduceBasis(position, amountRaw) {
   if (amount === position.trackedUnitsRaw) {
     position.trackedUnitsRaw = ZERO;
     position.costQuoteRaw = ZERO;
+    position.firstBuyAt = null;
+    position.lastBuyAt = null;
     return;
   }
   const removedCost = position.costQuoteRaw * amount / position.trackedUnitsRaw;
@@ -55,6 +57,7 @@ export function replayLedger(events) {
     const epochId = event.epochId ?? '0';
     if (event.type === 'buy') {
       const position = get(event.wallet);
+      if (position.trackedUnitsRaw === ZERO) position.firstBuyAt = event.timestamp;
       position.trackedUnitsRaw += positive(event.tokenAmountRaw, 'Token amount');
       position.costQuoteRaw += positive(event.quoteAmountRaw, 'Quote amount');
       position.lastBuyAt = event.timestamp;

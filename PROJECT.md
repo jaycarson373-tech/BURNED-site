@@ -154,3 +154,12 @@ Recorded 2026-09-18:
 - Replaced the starter mark with the supplied neon arrow identity, installed the final black-field production logo across the header and favicon, added the supplied Robinhood banner, and aligned the interface, chart, favicon, and social metadata to the black and acid-lime system.
 - The pre-launch interface shows the requested 1.5% fee. Once a verified Pons market is connected, the UI uses the canonical `feeBps + creatorTaxBps` from the index so public fee copy cannot override the launched contract terms.
 - Visual QA passed at 1440px and mobile widths 375px, 390px, and 430px. All checked mobile widths had `documentElement.scrollWidth === innerWidth`; the header controls, banner, price state, and chart controls remained usable.
+
+## Neon identity and product polish (2026-09-18)
+
+- Preserved the Pons V2 index, finalized-block policy, weighted-entry accounting, sell/send exclusions, reward contracts, and QQQ quote denomination.
+- Used the supplied black-field acid-green Topblast mark and Robinhood banner as the only visual source assets. Added a 1200×630 social derivative made by resizing and padding the supplied banner without generating new artwork.
+- Reworked the existing interface hierarchy around the hero, interactive chart, canonical wallet lookup, Blast Zone status, real transaction tape, and compact honest prelaunch states. No trades, wallets, prices, candles, or rewards were simulated.
+- Extended the existing canonical index response with first-buy time and current wallet status/return on verified buy markers and tape events. These fields are derived from the same replayed ledger and spot price already used by eligibility.
+- Added responsive checks for 375px, 390px, and 430px layouts and retained reduced-motion behavior.
+- `src/style.css` was intentionally changed for this product-specific identity pass; its source-integrity fingerprint was updated only after this rationale and verification evidence were recorded.
