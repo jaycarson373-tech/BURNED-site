@@ -1,0 +1,17 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{readFileSync}from'node:fs';import{runInNewContext}from'node:vm';
+const window={};runInNewContext(readFileSync('public/reward-cycle.js','utf8'),{window});
+const now=900000*100+123000;
+const base={active:true,currentEpoch:100,loaded:true,observedAt:now,now,epoch:{epoch_id:99,total_reward_raw:'30',eligible_count:2},batches:[{batch_id:'a',epoch_id:99,kind:'payout',status:'settled',signature:'3'.repeat(88),total_reward_raw:'10'},{batch_id:'b',epoch_id:99,kind:'payout',status:'settled',signature:'4'.repeat(88),total_reward_raw:'20'}]};
+const view=overrides=>window.BurnedRewardCycle.describe({...base,...overrides});
+test('timer targets canonical quarter hour without resetting after reload',()=>{assert.equal(view({}).countdown,'12:57');assert.equal(view({now:now+1000}).countdown,'12:56');});
+test('paused or stale state never implies scheduled payouts',()=>{assert.equal(view({active:false,loaded:false}).phase,'paused');assert.equal(view({active:false}).phase,'sent');assert.equal(view({active:false}).countdown,'—');assert.equal(view({observedAt:now-46000}).phase,'pending');});
+test('boundary waits for actual finalized snapshot rather than pretending to distribute',()=>{assert.equal(view({now:900000*101}).phase,'snapshot');assert.equal(view({now:900000*101}).countdown,'00:00');});
+test('only fully settled matching amounts have SENT and transaction proof',()=>{assert.equal(view({}).phase,'sent');assert.equal(view({}).signature,'3'.repeat(88));assert.equal(view({batches:base.batches.slice(0,1)}).phase,'pending');});
+test('submitted, planned, uncertain and failed batches are not sent',()=>{for(const [status,phase]of [['submitted','distributing'],['planned','distributing'],['uncertain','confirming'],['failed','failed']]){assert.equal(view({batches:base.batches.map((b,i)=>i?{...b,status}:b)}).phase,phase);}});
+test('missing signature or duplicate batch cannot certify a completed epoch',()=>{assert.notEqual(view({batches:base.batches.map(b=>({...b,signature:null}))}).phase,'sent');assert.equal(view({batches:[base.batches[0],base.batches[0]]}).phase,'pending');});
+test('zero allocation and price failure get honest non-payment states',()=>{assert.equal(view({epoch:{...base.epoch,total_reward_raw:'0',eligible_count:0},batches:[]}).phase,'empty');assert.equal(view({epoch:{...base.epoch,reason:'Stale price'}}).phase,'deferred');});
+test('old epochs and wrong-wallet-market batch data cannot produce a new sent event',()=>{assert.equal(view({epoch:{...base.epoch,epoch_id:98}}).phase,'snapshot');assert.equal(view({batches:base.batches.map(b=>({...b,epoch_id:98}))}).phase,'pending');});
+
+test('reviewed one-time snapshot counts down to its real deadline and never implies another',()=>{assert.equal(view({scheduledEpoch:101}).countdown,'27:57');assert.equal(view({scheduledEpoch:99}).countdown,'—');assert.equal(view({epoch:{...base.epoch,epoch_id:100},batches:base.batches.map(b=>({...b,epoch_id:100}))}).phase,'sent');});
+
+test('a previously paused epoch does not imply the new scheduled payout failed',()=>{assert.equal(view({epoch:{...base.epoch,reason:'No further payout authorized'}}).label,'NEXT SNAPSHOT');assert.equal(view({active:false,epoch:{...base.epoch,reason:'No further payout authorized'}}).phase,'paused');});

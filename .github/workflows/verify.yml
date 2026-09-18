@@ -1,18 +1,13 @@
-name: Verify Topblast Robinhood
-
-on:
-  push:
-  pull_request:
-
+name: Verify TOP BLAST site
+on: [push, pull_request]
 jobs:
-  verify:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
-      - uses: foundry-rs/foundry-toolchain@v1
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm run verify
+      - run: PUBLIC_VERCEL_PROJECT_PRODUCTION_URL=burned-ci.vercel.app npm run build

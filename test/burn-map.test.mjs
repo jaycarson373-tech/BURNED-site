@@ -1,0 +1,18 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+const window={};runInNewContext(readFileSync('public/burn-map.js','utf8'),{window});
+const {layout}=window.BurnedWalletMap;
+const stamp='2026-09-13T18:40:00Z';
+const status={current_price_raw:'100000000000',updated_at:stamp};
+const wallet=n=>'B'.repeat(29)+String(n).replaceAll('0','A').padStart(4,'C');
+const row=(n,entry='120000000000',state='blasted')=>({wallet:wallet(n),tracked_burned_raw:'12345678901234567890',entry_price_raw:entry,position_status:state,updated_at:stamp,burn_depth_bps:1666});
+test('verified entries use the canonical price line, with underwater entries above it',()=>{const m=layout([row(1),row(2,'80000000000','safe'),row(3,status.current_price_raw,'safe')],status);assert.ok(m.rows[0].y<m.currentY);assert.ok(m.rows[1].y>m.currentY);assert.equal(m.rows[2].y,m.currentY);});
+test('map preserves backend status and never recomputes eligibility from geometry',()=>{const m=layout([row(1,'200000000000','excluded')],status);assert.equal(m.rows[0].position_status,'excluded');assert.ok(m.rows[0].y<m.currentY);assert.equal(m.rows[0].entry_price_raw,'200000000000');});
+test('mixed snapshots are rejected so the last complete map remains visible',()=>{assert.equal(layout([row(1),{...row(2),updated_at:'2026-09-13T18:39:59Z'}],status),null);assert.equal(layout([row(1)],{...status,updated_at:'bad'}),null);assert.equal(layout([row(1)],{...status,current_price_raw:'0'}),null);});
+test('transferred-only, invalid and duplicate positions cannot create map entries',()=>{const m=layout([row(1),row(1),{...row(2),entry_price_raw:'0'},{...row(3),tracked_burned_raw:'0'},{...row(4),wallet:'<script>'},{...row(5),position_status:'made_up'}],status);assert.equal(m.total,1);});
+test('ordering changes do not make wallets jump horizontally',()=>{const rows=[row(1),row(2),row(3)];const a=layout(rows,status);const b=layout(rows.reverse(),status);assert.equal(JSON.stringify(a.rows),JSON.stringify(b.rows));});
+test('raw basis precision survives display conversion',()=>{const entry='123456789012345678901234567890';const m=layout([row(1,entry)],status);assert.equal(m.rows[0].entry_price_raw,entry);assert.equal(m.rows[0].tracked_burned_raw,'12345678901234567890');assert.ok(Number.isFinite(m.rows[0].y));});
+test('real empty snapshot contains zero dots, never sample wallets',()=>{const m=layout([],status);assert.equal(m.total,0);assert.equal(m.rows.length,0);assert.ok(Number.isFinite(m.currentY));});
+test('large maps report their display limit and include the selected wallet',()=>{const rows=Array.from({length:800},(_,i)=>row(i+1));const selected=rows.at(-1).wallet;const m=layout(rows,status,selected);assert.equal(m.total,800);assert.equal(m.visible,500);assert.ok(m.rows.some(r=>r.wallet===selected));});

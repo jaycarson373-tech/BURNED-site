@@ -1,12 +1,7 @@
-node_modules/
 dist/
-out/
-cache/
-.env
-.env.*
-!.env.example
-.DS_Store
 .vercel/
-.railway/
-/.launch.generated.env
-/.reward-deployment.json
+.DS_Store
+npm-debug.log*
+.env*
+
+node_modules/
