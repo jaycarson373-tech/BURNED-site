@@ -34,7 +34,7 @@ export function useMarketData(interval='1m') {
       setMarket(next);setError('');
     }catch(reason){
       setError(reason.message || 'Index unavailable');
-      setMarket(current=>({...current,status:current.lastUpdated?'delayed':'connecting'}));
+      setMarket(current=>({...current,status:current.status==='awaiting_configuration'?'awaiting_configuration':current.lastUpdated?'delayed':'connecting'}));
     }
   },[interval]);
   useEffect(()=>{refresh();const timer=setInterval(refresh,10000);return()=>clearInterval(timer)},[refresh]);
@@ -50,7 +50,7 @@ export function useMarketData(interval='1m') {
         else refresh();
       }catch{/* Preserve the last verified state if a stream event is malformed. */}
     };
-    stream.onerror=()=>setMarket(current=>({...current,status:current.lastUpdated?'reconnecting':'connecting'}));
+    stream.onerror=()=>setMarket(current=>({...current,status:current.status==='awaiting_configuration'?'awaiting_configuration':current.lastUpdated?'reconnecting':'connecting'}));
     return()=>stream.close();
   },[refresh]);
   return {market,error,refresh};
