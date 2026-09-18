@@ -9,7 +9,7 @@
     "scripts/doctor.mjs": "a737126d95a7c00e7f1434dae68b7065be65754da754f579c5e89c80e6b87e06",
     "scripts/verify-source.mjs": "074c6e98d522f2fcbbf400341ba9eb1eaa036ff1c17602ce85311f6ffb712c27",
     "src/chain.mjs": "96c3a21718086617f47de6bb34b5841b303cb719449f46c6c4ffe0f26dee8d64",
-    "src/style.css": "77d9a973b33b4bd7029a661448fc91376f942126bd214b6f7b87611add98c5e4",
+    "src/style.css": "659fe59da15f566af6eb690571e9b034455ef2d6474052707a9b80d17bc745d3",
     "src/utilities.mjs": "7b6d8f8602ff1ced53458a3abfb2cb234cb153ad152a39c96bcbd4314f85e612",
     "src/wallet.mjs": "fa45e49e935941ba96da117e0f47967a3d54a4575ff98cc8cc30d44297d49b28",
     "src/WalletPanel.jsx": "19284cd95486c06fcc1df005fce456093623cfcc566fcf6cead400073e513d9d",

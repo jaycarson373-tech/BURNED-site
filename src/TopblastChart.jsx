@@ -13,11 +13,11 @@ export function TopblastChart({candles=[],buys=[],selectedPosition=null,onSelect
     if(!host.current)return;
     const chart=createChart(host.current,{
       autoSize:true,
-      layout:{background:{type:ColorType.Solid,color:'#07120e'},textColor:'#9eb3aa',fontFamily:'Inter, system-ui, sans-serif'},
-      grid:{vertLines:{color:'rgba(139,255,93,.055)'},horzLines:{color:'rgba(139,255,93,.055)'}},
-      rightPriceScale:{borderColor:'rgba(205,255,186,.16)',scaleMargins:{top:.1,bottom:.2}},
-      timeScale:{borderColor:'rgba(205,255,186,.16)',timeVisible:true,secondsVisible:false,rightOffset:6,barSpacing:11,minBarSpacing:3},
-      crosshair:{vertLine:{color:'#b6ff78',labelBackgroundColor:'#173b28'},horzLine:{color:'#b6ff78',labelBackgroundColor:'#173b28'}},
+      layout:{background:{type:ColorType.Solid,color:'#060806'},textColor:'#9aa38f',fontFamily:'Inter, system-ui, sans-serif'},
+      grid:{vertLines:{color:'rgba(227,255,0,.05)'},horzLines:{color:'rgba(227,255,0,.05)'}},
+      rightPriceScale:{borderColor:'rgba(227,255,0,.14)',scaleMargins:{top:.1,bottom:.2}},
+      timeScale:{borderColor:'rgba(227,255,0,.14)',timeVisible:true,secondsVisible:false,rightOffset:6,barSpacing:11,minBarSpacing:3},
+      crosshair:{vertLine:{color:'#eaff00',labelBackgroundColor:'#303a00'},horzLine:{color:'#eaff00',labelBackgroundColor:'#303a00'}},
       handleScale:{axisPressedMouseMove:true,mouseWheel:true,pinch:true},handleScroll:{mouseWheel:true,pressedMouseMove:true,horzTouchDrag:true,vertTouchDrag:false},
     });
     chartRef.current=chart;
@@ -37,15 +37,15 @@ export function TopblastChart({candles=[],buys=[],selectedPosition=null,onSelect
     for(const existing of [...(chart.__topblastSeries||[])])chart.removeSeries(existing);
     chart.__topblastSeries=[];
     const series=view==='candles'
-      ?chart.addSeries(CandlestickSeries,{upColor:'#b7ff5c',downColor:'#ff7849',borderVisible:false,wickUpColor:'#b7ff5c',wickDownColor:'#ff7849',priceFormat})
-      :chart.addSeries(LineSeries,{color:'#b6ff78',lineWidth:3,crosshairMarkerRadius:5,priceLineVisible:true,lastValueVisible:true,priceFormat});
+      ?chart.addSeries(CandlestickSeries,{upColor:'#eaff00',downColor:'#ff7849',borderVisible:false,wickUpColor:'#eaff00',wickDownColor:'#ff7849',priceFormat})
+      :chart.addSeries(LineSeries,{color:'#eaff00',lineWidth:3,crosshairMarkerRadius:5,priceLineVisible:true,lastValueVisible:true,priceFormat});
     seriesRef.current=series;chart.__topblastSeries.push(series);
     series.setData(view==='candles'?clean:clean.map(row=>({time:row.time,value:row.close})));
     if(clean.length){
       const volume=chart.addSeries(HistogramSeries,{priceFormat:{type:'volume'},priceScaleId:'volume',color:'rgba(86,236,177,.22)'});
       chart.__topblastSeries.push(volume);
       volume.priceScale().applyOptions({scaleMargins:{top:.84,bottom:0}});
-      volume.setData(clean.map(row=>({time:row.time,value:row.volume,color:row.close>=row.open?'rgba(182,255,120,.24)':'rgba(255,120,73,.24)'})));
+      volume.setData(clean.map(row=>({time:row.time,value:row.volume,color:row.close>=row.open?'rgba(234,255,0,.25)':'rgba(255,120,73,.24)'})));
     }
     const markers=buys.filter(b=>Number.isFinite(Number(b.time))&&Number.isFinite(Number(b.price))).sort((a,b)=>Number(a.time)-Number(b.time)||Number(a.executionTime||a.time)-Number(b.executionTime||b.time)).map(b=>({
       time:Number(b.time),position:'belowBar',color:b.wallet?.toLowerCase()===selectedPosition?.wallet?.toLowerCase()?'#fff':'#ff7a40',shape:'circle',text:b.wallet?.slice(0,5)||'BUY',id:b.id,
@@ -61,7 +61,7 @@ export function TopblastChart({candles=[],buys=[],selectedPosition=null,onSelect
   const intervals=['1m','5m','15m','1h','4h','1d'];
   return <div className="chart-shell">
     <div className="chart-toolbar"><div className="segmented" aria-label="Candle interval">{intervals.map(item=><button className={interval===item?'active':''} key={item} onClick={()=>onInterval(item)}>{item.toUpperCase()}</button>)}</div><div className="chart-actions"><button onClick={()=>setView(view==='line'?'candles':'line')}>{view==='line'?'CANDLES':'LINE'}</button><button onClick={()=>chartRef.current?.timeScale().fitContent()}>RESET</button><button onClick={()=>host.current?.parentElement?.requestFullscreen?.()}>EXPAND</button></div></div>
-    <div className="chart-stage">{!clean.length&&<div className="chart-empty"><span>MARKET NOT CONFIGURED</span><strong>Live TOPBLAST candles begin after the verified Pons launch is connected.</strong><small>No simulated price data.</small></div>}{hover&&<div className="ohlc"><span>O {Number(hover.open).toPrecision(6)}</span><span>H {Number(hover.high).toPrecision(6)}</span><span>L {Number(hover.low).toPrecision(6)}</span><span>C {Number(hover.close).toPrecision(6)}</span></div>}{hover?.buy&&<a className="marker-proof" href={explorerLink('tx',hover.buy.transactionHash)} target="_blank" rel="noreferrer"><b>{hover.buy.wallet.slice(0,6)}…{hover.buy.wallet.slice(-4)}</b><span>{Number(hover.buy.quoteAmount).toLocaleString(undefined,{maximumFractionDigits:4})} QQQ → {Number(hover.buy.tokenAmount).toLocaleString(undefined,{maximumFractionDigits:2})} TOPBLAST</span><small>{new Date(Number(hover.buy.executionTime)*1000).toLocaleString()} · FINALIZED · VIEW TX</small></a>}<div ref={zoneRef} className={`blast-zone ${selectedPosition?.status==='blasted'?'active':''}`} hidden><span>{selectedPosition?.status==='blasted'?'BLASTED':'BLAST ZONE'} · {selectedPosition?.wallet?.slice(0,6)}…</span></div><div ref={host} className="chart-canvas" aria-label="TOPBLAST price chart" />{!atLive&&clean.length>0&&<button className="jump-live" onClick={()=>{chartRef.current?.timeScale().scrollToRealTime();setAtLive(true)}}>JUMP TO LIVE</button>}</div>
+    <div className="chart-stage">{!clean.length&&<div className="chart-empty"><span>PONS MARKET STANDBY</span><strong>Live TOPBLAST candles activate when the verified Pons contract is connected.</strong><small>Real trades only. No simulated price data.</small></div>}{hover&&<div className="ohlc"><span>O {Number(hover.open).toPrecision(6)}</span><span>H {Number(hover.high).toPrecision(6)}</span><span>L {Number(hover.low).toPrecision(6)}</span><span>C {Number(hover.close).toPrecision(6)}</span></div>}{hover?.buy&&<a className="marker-proof" href={explorerLink('tx',hover.buy.transactionHash)} target="_blank" rel="noreferrer"><b>{hover.buy.wallet.slice(0,6)}…{hover.buy.wallet.slice(-4)}</b><span>{Number(hover.buy.quoteAmount).toLocaleString(undefined,{maximumFractionDigits:4})} QQQ → {Number(hover.buy.tokenAmount).toLocaleString(undefined,{maximumFractionDigits:2})} TOPBLAST</span><small>{new Date(Number(hover.buy.executionTime)*1000).toLocaleString()} · FINALIZED · VIEW TX</small></a>}<div ref={zoneRef} className={`blast-zone ${selectedPosition?.status==='blasted'?'active':''}`} hidden><span>{selectedPosition?.status==='blasted'?'BLASTED':'BLAST ZONE'} · {selectedPosition?.wallet?.slice(0,6)}…</span></div><div ref={host} className="chart-canvas" aria-label="TOPBLAST price chart" />{!atLive&&clean.length>0&&<button className="jump-live" onClick={()=>{chartRef.current?.timeScale().scrollToRealTime();setAtLive(true)}}>JUMP TO LIVE</button>}</div>
     <div className="chart-caption"><span>QQQ PER TOPBLAST</span><span>Drag to pan · wheel or pinch to zoom</span><span>TradingView Lightweight Charts™</span></div>
   </div>;
 }
