@@ -1,0 +1,13 @@
+{
+  "kitVersion": "0.1.0",
+  "name": "topblast-robinhood",
+  "modules": [
+    "airdrop",
+    "claims",
+    "snapshot",
+    "wallet"
+  ],
+  "network": "mainnet",
+  "chainId": 4663,
+  "liveDeployment": false
+}

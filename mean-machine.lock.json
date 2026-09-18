@@ -1,0 +1,21 @@
+{
+  "kitVersion": "0.1.0",
+  "algorithm": "sha256",
+  "files": {
+    "contracts/HoodBrokerRewards.sol": "011592efcefa134e610622474bd5b32418e088b13b5a0cbb8c015ad31a1066c1",
+    "foundry.toml": "6992e62adaab8ce563544a281972d9e9f99b5f0fddf5fabafaa8b8699b5e7649",
+    "keeper/core.mjs": "f664b6f13475c8630dd2f00e2eca3600ab468944fa46f306851443aa89bbebb2",
+    "keeper/core.test.mjs": "82bcc9f784b5eee0718f2de8cc54565f8c3745f665ada0f8302bbeb257107ca4",
+    "scripts/doctor.mjs": "a737126d95a7c00e7f1434dae68b7065be65754da754f579c5e89c80e6b87e06",
+    "scripts/verify-source.mjs": "074c6e98d522f2fcbbf400341ba9eb1eaa036ff1c17602ce85311f6ffb712c27",
+    "src/chain.mjs": "96c3a21718086617f47de6bb34b5841b303cb719449f46c6c4ffe0f26dee8d64",
+    "src/style.css": "77d9a973b33b4bd7029a661448fc91376f942126bd214b6f7b87611add98c5e4",
+    "src/utilities.mjs": "7b6d8f8602ff1ced53458a3abfb2cb234cb153ad152a39c96bcbd4314f85e612",
+    "src/wallet.mjs": "fa45e49e935941ba96da117e0f47967a3d54a4575ff98cc8cc30d44297d49b28",
+    "src/WalletPanel.jsx": "19284cd95486c06fcc1df005fce456093623cfcc566fcf6cead400073e513d9d",
+    "test/HoodBrokerRewards.t.sol": "dc489c241bd0fb865b7a1be0db0ec23629e277964b62427eb49d87c72d4d67cd",
+    "tests/utilities.test.mjs": "8d83e6ecb9f5ec233db80bb5e2cafaaf5343ef5639a7666d944da4d23952bc90",
+    "tests/wallet.test.mjs": "e8ad4e5916ce03b7c3ff6a4448338d54578c5fd257b3487dc111e8a234117f13",
+    "vite.config.mjs": "ed07390483f38a7618508eaf70a04f9be32695963f56d08fa28f8e3448e3aaf6"
+  }
+}

@@ -1,0 +1,5 @@
+.chart-canvas{z-index:1}
+.blast-zone{position:absolute;z-index:2;left:0;right:70px;bottom:0;background:linear-gradient(180deg,rgba(255,120,73,.05),rgba(255,120,73,.16));border-top:1px solid rgba(255,120,73,.2);pointer-events:none}
+.chart-empty{z-index:3}
+.blast-zone.active{background:linear-gradient(180deg,rgba(255,120,73,.09),rgba(255,72,45,.24))}
+.blast-zone span{position:absolute;top:10px;left:15px;font:8px ui-monospace,monospace;letter-spacing:.14em;color:#ff9567}

@@ -1,17 +1,36 @@
 {
-  "name": "topblast-site",
-  "version": "1.0.0",
+  "name": "topblast-robinhood",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
-    "dev": "node scripts/dev.mjs",
-    "test": "node --test",
-    "build": "node scripts/build.mjs"
+    "dev": "vite",
+    "start": "node --env-file-if-exists=.env server/start-railway.mjs",
+    "start:index": "node --env-file-if-exists=.env server/start-index.mjs",
+    "start:rewards": "node --env-file-if-exists=.env server/start-rewards.mjs",
+    "configure:launch": "node --env-file-if-exists=.env scripts/configure-launch.mjs",
+    "deploy:rewards": "forge build && node --env-file-if-exists=.env scripts/deploy-rewards.mjs",
+    "prelaunch": "node --env-file-if-exists=.env scripts/prelaunch.mjs",
+    "preflight": "node --env-file-if-exists=.env scripts/preflight.mjs",
+    "build": "vite build",
+    "test": "node --test tests/*.test.mjs keeper/*.test.mjs",
+    "verify:source": "node scripts/verify-source.mjs",
+    "doctor": "node --env-file-if-exists=.env scripts/doctor.mjs",
+    "test:contracts": "forge test",
+    "verify": "npm run verify:source && npm test && npm run test:contracts && npm run build"
   },
   "dependencies": {
-    "lightweight-charts": "5.2.1"
+    "@openzeppelin/contracts": "5.4.0",
+    "ethers": "6.17.0",
+    "lightweight-charts": "5.2.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "linkedom": "0.18.12"
+    "@vitejs/plugin-react": "6.0.2",
+    "vite": "8.2.2"
   }
 }

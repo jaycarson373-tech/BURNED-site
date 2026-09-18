@@ -1,11 +1,21 @@
-# Topblast · BLAST / STONK
+# Topblast
 
-Trading broadcast built with TradingView Lightweight Charts 5.2.1 and the existing finalized Solana index. No embedded chart, simulated prices or client-side cost-basis engine.
+Live market, wallet-cost-basis, Blast Zone, leaderboard, and reward foundation for a Pons V2 token paired directly with QQQ on Robinhood Chain.
 
-- npm run dev: local site at http://127.0.0.1:5181
-- npm test: data, chart integration, configuration and legacy regression tests
-- npm run build: validated static output in dist
+```sh
+npm install
+cp .env.example .env
+npm run dev
+```
 
-See CHART-UPGRADE.md for architecture, acceptance results and live-data configuration. Copy new-market deployment values from vercel-variables.example after verifying the BLAST launch. Never put private keys or service-role keys in public config.
+Before launch, keep the token address empty. After launch, run `npm run configure:launch -- <token CA> <https://x.com/account>`. The worker verifies the Pons V2 factory event and derives the curve, quote asset, launch block, decimals, fee recipient, and market phase from that token. The UI refuses to substitute historical or sample activity.
 
-TradingView attribution and Apache 2.0 license are included under public/vendor and linked from the footer. Old app.js/style assets remain in source for history and regression coverage but are excluded from the published build.
+Run `npm test`, `npm run test:contracts`, and `npm run build` for local verification. `npm run doctor` checks the live RPC without submitting transactions. `npm run preflight` is the final read-only production gate after the live CA and X URL are configured.
+
+Read [LAUNCH_RUNBOOK.md](./LAUNCH_RUNBOOK.md) before creating the token. The reward adapter must be the Pons creator fee recipient for automatic QQQ funding.
+
+Railway builds are split into `railway.index.toml` and `railway.rewards.toml`. Both services need persistent `/data` volumes; only the index service receives a public domain.
+
+To initialize version control after a ZIP download: `git init -b main`. The Mean Machine CLI does this automatically.
+
+Read PROJECT.md for module capabilities and remaining integrations.

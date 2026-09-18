@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {drawWinner,seedCommitment,rankBattle,splitPrize,quoteV2,binaryPrices,settleWinningShares} from '../src/utilities.mjs';
+const a='0x0000000000000000000000000000000000000001',b='0x0000000000000000000000000000000000000002';
+const seed='0x'+'00'.repeat(32);
+test('draw is order-independent and honors exact weight boundaries',()=>{const rows=[{wallet:a,weight:1n},{wallet:b,weight:2n}];assert.equal(drawWinner(rows,seed).wallet,a);assert.deepEqual(drawWinner(rows,seed),drawWinner([...rows].reverse(),seed));assert.equal(drawWinner(rows,'0x'+'00'.repeat(31)+'01').wallet,b);assert.match(seedCommitment(seed),/^0x[0-9a-f]{64}$/)});
+test('draw rejects duplicate participants, malformed seeds and invalid weights',()=>{assert.throws(()=>drawWinner([{wallet:a,weight:1},{wallet:a,weight:2}],seed));assert.throws(()=>drawWinner([{wallet:a,weight:0}],seed));assert.throws(()=>drawWinner([{wallet:a,weight:1}],'hello'))});
+test('rank uses exact rational returns and shares ranks for ties',()=>{const rows=rankBattle([{wallet:b,start:3n,end:4n},{wallet:a,start:6n,end:8n}]);assert.deepEqual(rows.map(r=>r.rank),[1,1]);assert.equal(rows[0].wallet,a);const huge=10n**30n;assert.equal(rankBattle([{wallet:a,start:huge,end:huge},{wallet:b,start:huge,end:huge+1n}])[0].wallet,b)});
+test('prize and share payouts conserve all raw units with dust',()=>{const split=splitPrize(101n,[{wallet:a},{wallet:b}]);assert.equal(split.dust,1n);assert.equal(split.allocations.reduce((s,r)=>s+r.amount,split.dust),101n);const shares=settleWinningShares(101n,[{wallet:a,shares:1n},{wallet:b,shares:2n}]);assert.deepEqual(shares.allocations.map(r=>r.amount),[33n,67n]);assert.equal(shares.dust,1n)});
+test('V2 quote accounts for fee, slippage, and invalid inputs',()=>{assert.equal(quoteV2(1000n,10000n,10000n),906n);assert.ok(quoteV2(1000n,10000n,10000n,0n)>906n);assert.throws(()=>quoteV2(1n,0n,1000n));assert.throws(()=>quoteV2(1n,1n,1n,10000n))});
+test('binary prices sum to 10000 and are inversely related to reserve',()=>{assert.deepEqual(binaryPrices(100n,300n),{yesBps:7500n,noBps:2500n});assert.throws(()=>binaryPrices(0n,3n));assert.throws(()=>settleWinningShares(100n,[]))});
