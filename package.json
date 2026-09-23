@@ -9,6 +9,7 @@
     "build": "node scripts/build.mjs"
   },
   "dependencies": {
+    "ethers": "^6.17.0",
     "lightweight-charts": "5.2.1"
   },
   "devDependencies": {
