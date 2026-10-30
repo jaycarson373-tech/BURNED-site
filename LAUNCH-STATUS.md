@@ -12,7 +12,7 @@
 ## Required after the new Pump mint exists
 
 1. Verify the mint, Pump creation transaction, creator, bonding curve or PumpSwap pool, token decimals and launch slot on mainnet.
-2. Register a new isolated `topblast-pump-v1` market in the reward engine and backfill every finalized buy from launch.
+2. The Pump-only worker registers `topblast-pump-v1`, backfills every finalized buy from launch and publishes the read-only `topblast_site_*` projections consumed by this frontend.
 3. Configure Railway with its server-only Helius/RPC, Supabase service role and reviewed signer settings. Keep `DRY_RUN=true`, payout sending paused and secrets off Vercel during acceptance.
 4. Configure Vercel with the values in `vercel-variables.example`; enable market/index flags only after the public snapshot matches the verified mint.
 5. Prove one genuine per-mint Pump fee receipt, a below-entry eligible snapshot, one finalized holder payout, receipt visibility and restart-safe duplicate prevention.
