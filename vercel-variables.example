@@ -1,12 +1,12 @@
-# New market only. Never reuse the old BURNED/EMBER or TOPBLAST/RAY mint.
+# New Pump mainnet market only. Leave the mint blank before launch.
 PUBLIC_BLAST_MINT=
-PUBLIC_BLAST_STONK_MINT=
-BLAST_PROJECT_ID=blast-stonk-v1
+PUBLIC_BLAST_REWARD_MINT=So11111111111111111111111111111111111111112
+BLAST_PROJECT_ID=topblast-pump-v1
 BLAST_MARKET_VERIFIED=false
 BLAST_INDEX_VERIFIED=false
 BLAST_REWARDS_ACTIVE=false
 PUBLIC_BLAST_SUPABASE_URL=
-# Publishable or anon only. Never service-role credentials.
+# Publishable or anon only. Never a service-role credential.
 PUBLIC_BLAST_SUPABASE_KEY=
 PUBLIC_BLAST_SITE_URL=
 PUBLIC_BLAST_X_URL=
