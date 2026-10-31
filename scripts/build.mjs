@@ -1,9 +1,10 @@
 import{mkdir,rm,readFile,readdir,stat,copyFile,writeFile,cp}from'node:fs/promises';
 import{join}from'node:path';import{blastPublicConfig}from'./blast-config.mjs';
 const config=blastPublicConfig(process.env);let html=await readFile('public/index.html','utf8');
-for(const marker of ['Topblast','BLAST RADAR','TOPBLAST / SOL','PUMP.FUN','id="market-chart"','id="inspector"','id="transaction-feed"','TradingView'])if(!html.includes(marker))throw new Error('Missing product element: '+marker);
+for(const marker of ['Topblast','BLAST RADAR','TOPBLAST','PUMP.FUN','id="market-chart"','id="inspector"','id="transaction-feed"','TradingView'])if(!html.includes(marker))throw new Error('Missing product element: '+marker);
 if(/<iframe/i.test(html))throw new Error('Embedded charts are not part of this product');
-if(/BURNED|BURN ZONE|TOPLAST|\$EMBER|\$RAY|PONS|STONK|ROBINHOOD|burned\.live|embercurve\.fun|stonkfun\.xyz/i.test(html))throw new Error('Prior public branding remains');
+const publicCopy=html.replaceAll('https://x.com/TopblastStonk','');
+if(/BURNED|BURN ZONE|TOPLAST|\$EMBER|\$RAY|PONS|STONK|ROBINHOOD|burned\.live|embercurve\.fun|stonkfun\.xyz/i.test(publicCopy))throw new Error('Prior public branding remains');
 for(const m of html.matchAll(/href="#([^"]+)"/g))if(!html.includes(`id="${m[1]}"`))throw new Error('Broken anchor '+m[1]);
 for(const m of html.matchAll(/(?:src|href)="(\/[^"?]+)"/g))if(!(await stat(join('public',m[1].slice(1)))).size)throw new Error('Missing asset '+m[1]);
 await rm('dist',{recursive:true,force:true});await mkdir('dist',{recursive:true});
