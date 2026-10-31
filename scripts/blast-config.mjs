@@ -15,7 +15,7 @@ export function blastPublicConfig(env={}){
  if(Boolean(supabaseUrl)!==Boolean(supabaseKey))throw new Error('Configure both public index values');
  if(supabaseUrl){const u=new URL(supabaseUrl);if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash)throw new Error('Invalid public index URL');validatePublicSupabaseKey(supabaseKey);}
  if(indexVerified&&(!supabaseUrl||!supabaseKey))throw new Error('Verify the isolated BLAST index before enabling data');
- const xUrl=read('PUBLIC_BLAST_X_URL'),siteUrl=read('PUBLIC_BLAST_SITE_URL');
+ const xUrl=read('PUBLIC_BLAST_X_URL')||'https://x.com/Topblast_xyz_',siteUrl=read('PUBLIC_BLAST_SITE_URL');
  if(xUrl&&!/^https:\/\/(?:www\.)?x\.com\/[A-Za-z0-9_]{1,15}\/?$/.test(xUrl))throw new Error('Invalid X URL');
  if(siteUrl){const u=new URL(siteUrl);if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash)throw new Error('Invalid site URL');}
  return {name:'Topblast',ticker:'TOPBLAST',quoteSymbol:'PUMP',quoteDecimals:6,venue:'pumpfun',projectId,topblastMint:marketVerified?mint:'',rewardMint:marketVerified?rewardMint:'',indexVerified,marketVerified,rewardsActive:indexVerified&&read('BLAST_REWARDS_ACTIVE')==='true',reviewedEpoch:null,supabaseUrl:indexVerified?supabaseUrl:'',supabaseKey:indexVerified?supabaseKey:'',xUrl,siteUrl,dexscreenerUrl:marketVerified?`https://dexscreener.com/solana/${mint}`:'',buyUrl:marketVerified?`https://jup.ag/swap/${rewardMint}-${mint}`:''};
