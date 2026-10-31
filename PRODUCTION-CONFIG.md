@@ -3,12 +3,13 @@
 The site and worker bind to one verified Pump mint. Signing secrets remain on
 Railway. Never place a private key in Vercel, Supabase, source control or chat.
 
-**Not ready for live payouts:** the existing single-token worker enforces a
-70/30 allocation, while the intended policy is 80% holders and 20% buyback and
-burn. The existing buyback implementation accepts SOL only. PUMP fee funding,
-the 80/20 ledger, buyback execution and a real reward cycle must be implemented
-and verified before the live-reward switch is enabled. Do not activate the old
-mint or reuse its records.
+**New launch policy:** 90% of applicable confirmed fees fund eligible holder
+rewards; 10% fund TOPBLAST buyback and burn. The PUMP-specific accounting and
+execution code is staged on `topblast-pump-v2-staged`. Apply both PUMP fee-bucket
+migrations, including `202610310002_topblast_pump_90_10.sql`, before configuring
+that profile. Existing immutable launches and historical receipts retain their
+original allocation. Live activation still requires a verified new mint and a
+real fee-funded reward cycle. Do not activate the old mint or reuse its records.
 
 ## Railway reward worker
 
@@ -17,6 +18,10 @@ Configure the existing `rewards-worker` service:
 ```dotenv
 SERVICE_MODE=worker
 TOPBLAST_PUMP_ONLY=true
+TOPBLAST_PUMP_V2_ENABLED=true
+TOPBLAST_PUMP_BUYBACKS_ENABLED=false
+TOPBLAST_MAX_BUYBACK_ATOMS=EXPLICIT_POSITIVE_PUMP_BASE_UNIT_CAP
+TOPBLAST_MIN_BUYBACK_ATOMS=EXPLICIT_POSITIVE_PUMP_BASE_UNIT_MINIMUM
 TOPBLAST_TOKEN_MINT=VERIFIED_PUMP_MINT
 TOPBLAST_TREASURY_ADDRESS=MATCHING_PUBLIC_WALLET
 TREASURY_PRIVATE_KEY=RAILWAY_SEALED_SECRET
@@ -65,6 +70,6 @@ different reward mint; the market quote must independently match this mint.
 
 ## Activation evidence
 
-Before treating payouts as live, confirm one real buy, its weighted entry, a
+Keep buybacks and live rewards disabled during configuration. Before treating payouts as live, confirm one real buy, its weighted entry, a
 completed underwater snapshot, a fee-funded epoch, a confirmed holder transfer,
 the public receipt, and a worker restart that does not duplicate payment.
