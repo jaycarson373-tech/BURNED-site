@@ -179,3 +179,5 @@ body:before{background:radial-gradient(760px 420px at 84% -20%,rgba(180,243,88,.
 @media(max-width:760px){.metric-strip small,.metric-strip span{font-size:9px}.hero-copy>p.intended-pair{font-size:10px}}
 @media(max-width:760px){#wallet-form{flex:0 0 64px;min-width:0}#market-status{max-width:125px;overflow:hidden;text-overflow:ellipsis}}
 @media(max-width:480px){#market-status{display:none}}
+
+.hero-copy>p.holding-rule{margin-top:10px;color:var(--muted);font:10px/1.5 var(--mono);letter-spacing:.025em}

@@ -73,3 +73,13 @@ different reward mint; the market quote must independently match this mint.
 Keep buybacks and live rewards disabled during configuration. Before treating payouts as live, confirm one real buy, its weighted entry, a
 completed underwater snapshot, a fee-funded epoch, a confirmed holder transfer,
 the public receipt, and a worker restart that does not duplicate payment.
+
+## New-launch holding limits
+
+The verified Pump curve launch supply is recorded when the new market is imported.
+The holding policy is immutable: at least 100,000 verified remaining tokens are
+required; a total wallet balance above 5% of that launch supply is excluded.
+Exactly 100,000 and exactly 5% qualify for these limits. Incoming transfers cannot
+meet the verified minimum and count toward the maximum. Apply migrations
+202610310003 and 202610310004 with the new worker. Existing saved snapshots and
+historical launch policies remain unchanged.
