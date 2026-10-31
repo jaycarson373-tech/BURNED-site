@@ -181,3 +181,4 @@ body:before{background:radial-gradient(760px 420px at 84% -20%,rgba(180,243,88,.
 @media(max-width:480px){#market-status{display:none}}
 
 .hero-copy>p.holding-rule{margin-top:10px;color:var(--muted);font:10px/1.5 var(--mono);letter-spacing:.025em}
+@media(max-width:760px){.ca-copy:not([hidden]){display:inline-flex!important;align-items:center;justify-content:center;min-height:44px;max-width:120px;flex:0 0 auto;font-size:9px;padding-inline:6px}}
