@@ -25,3 +25,9 @@ test('explicit quarter-hour schedule counts down without claiming a payout is ac
  assert.equal(schedule(Date.parse('2026-10-31T12:07:30Z')),450);
  assert.equal(schedule(NaN),null);
 });
+test('an incomplete or failed finalized index cannot announce a live clock',()=>{
+ const now=Date.now(),stamp=new Date(now).toISOString(),index=context.window.TopBlastIndex;
+ assert.equal(index.fresh({updated_at:stamp,indexed_through_time:stamp,history_complete:false,price_status:'fresh'},now),false);
+ assert.equal(index.fresh({updated_at:stamp,indexed_through_time:stamp,history_complete:true,price_status:'failed'},now),false);
+ assert.equal(index.fresh({updated_at:stamp,indexed_through_time:stamp,history_complete:true,price_status:'fresh'},now),true);
+});

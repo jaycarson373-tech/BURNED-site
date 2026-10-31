@@ -47,6 +47,7 @@ window.TopBlastIndex = Object.freeze({
     }));
   },
   fresh(status, now = Date.now()) {
+    if (status?.history_complete === false || (status?.price_status && status.price_status !== 'fresh')) return false;
     return [status?.updated_at, status?.indexed_through_time].every(value => {
       const age = now - Date.parse(value || '');
       return Number.isFinite(age) && age >= -30000 && age <= 180000;
