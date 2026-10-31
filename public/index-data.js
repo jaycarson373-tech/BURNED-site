@@ -7,6 +7,10 @@ window.TopBlastIndex = Object.freeze({
   payoutClockActive(status, config, now = Date.now()) {
     return config?.rewardsActive === true && status?.mode === 'send' && this.matchesMarket(status, config) && this.fresh(status, now);
   },
+  epochRemainingSeconds(status, now = Date.now()) {
+    const due = Date.parse(status?.next_epoch_at || '');
+    return Number.isFinite(due) ? Math.max(0, Math.ceil((due - now) / 1000)) : null;
+  },
   crossing(previous, current) {
     const before = previous?.position_status;
     const after = current?.position_status;
