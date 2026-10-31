@@ -146,3 +146,36 @@ dialog{width:min(560px,calc(100% - 28px));max-height:80vh;overflow:auto;backgrou
 @media(max-width:760px){#hero-wallet-action{order:0}.hero-actions .secondary-action{order:1}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
+/* Product polish: a quieter canvas lets the market and position lead. */
+body:before{background:radial-gradient(760px 420px at 84% -20%,rgba(180,243,88,.045),transparent 66%)}
+.hero{min-height:360px;padding:58px 0 48px;gap:48px}
+.hero h1{font-size:clamp(50px,6vw,84px)}
+.hero-copy>p:not(.kicker){font-size:16px;line-height:1.55;max-width:570px}
+.hero-actions .secondary-action{background:transparent;border-color:var(--border-strong)}
+.hero-signal{min-height:240px;padding:22px 0 16px 42px}
+.hero-mark{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:180px;overflow:hidden}
+.hero-mark:before,.hero-mark:after{content:"";position:absolute;width:75%;height:1px;background:linear-gradient(90deg,transparent,rgba(180,243,88,.22),transparent);transform:rotate(-18deg)}
+.hero-mark:after{transform:rotate(-18deg) translateY(34px);opacity:.45}
+.hero-mark img{width:160px;height:160px;object-fit:contain;position:relative;z-index:1;mix-blend-mode:screen}
+.hero-mark-caption{font:9px var(--mono);color:var(--faint);letter-spacing:.12em}
+.metric-strip{background:transparent;border-inline:0;border-radius:0;box-shadow:none}
+.metric-strip>div{padding:18px 24px}.metric-strip>div:first-child{padding-left:0}
+.panel{background:#111612;border-color:#253027}
+.market-workspace{gap:12px}.chart-panel{padding:18px}.plot-wrap{height:380px}
+.blast-mechanic{margin:30px 0 12px;padding:32px;background:transparent;gap:28px;grid-template-columns:1fr 1.4fr}
+.blast-mechanic:after{display:none}.blast-intro{grid-row:span 2}.blast-intro h2{font-size:clamp(32px,3.2vw,48px)}
+.mechanic-flow{grid-template-columns:1fr 20px 1fr 20px 1fr;gap:8px}.mechanic-flow small{display:block;color:var(--muted);font-size:11px;font-weight:400;line-height:1.45;margin-top:7px;white-space:normal}
+.blast-live{grid-column:2}.rules{margin-top:12px}.reward-totals{grid-template-columns:repeat(3,1fr)}
+.rewards-rules{grid-template-columns:1fr}.position-symbol{margin-bottom:12px}#wallet-empty{padding:28px 8px}
+@media(max-width:760px){
+ .hero{padding:40px 0 28px}.hero h1{font-size:clamp(43px,12vw,60px)}.hero-actions{display:flex;gap:8px}.hero-actions>*{flex:1;min-width:0;text-align:center;padding-inline:10px!important;font-size:11px}.hero-actions .buy-link{order:0}#hero-wallet-action{order:1}
+ .metric-strip{grid-template-columns:repeat(3,minmax(0,1fr));margin:0}.metric-strip>div,.metric-strip>div:first-child{display:block;padding:13px 8px;border-bottom:0;border-right:1px solid var(--border)}.metric-strip>div:first-child{padding-left:0}.metric-strip>div:last-child{border-right:0}.metric-strip small{min-height:26px;line-height:1.3;font-size:8px}.metric-strip strong{margin:5px 0;font-size:15px}.metric-strip span{font-size:8px;line-height:1.35}
+ .plot-wrap{height:285px}.market-workspace{gap:10px}.chart-panel{padding:13px}.chart-toolbar{gap:5px}.chart-toolbar button{min-height:36px}
+ .blast-mechanic{display:block;margin:24px 0 10px;padding:22px 16px}.blast-intro h2{font-size:34px}.mechanic-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:20px}.mechanic-flow span{white-space:normal;padding:12px 8px;background:#111612}.mechanic-flow small{font-size:10px}.blast-live{margin-top:18px}
+ .reward-totals{grid-template-columns:repeat(3,1fr)}.reward-totals>div{padding:12px 7px}.reward-totals>div:nth-child(2){border-right:1px solid var(--border)}.reward-totals>div:nth-child(-n+2){border-bottom:0}.reward-totals strong{font-size:14px}.rules{margin-top:10px}
+}
+@media(max-width:390px){.hero h1{font-size:44px}.hero-actions>*{font-size:10px}.metric-strip strong{font-size:15px}}
+.hero-copy>p.intended-pair{margin-top:16px;color:var(--faint);font:10px/1.4 var(--mono);letter-spacing:.07em}
+@media(max-width:760px){.metric-strip small,.metric-strip span{font-size:9px}.hero-copy>p.intended-pair{font-size:10px}}
+@media(max-width:760px){#wallet-form{flex:0 0 64px;min-width:0}#market-status{max-width:125px;overflow:hidden;text-overflow:ellipsis}}
+@media(max-width:480px){#market-status{display:none}}

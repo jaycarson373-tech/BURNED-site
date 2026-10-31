@@ -39,3 +39,11 @@ Reference review:
 
 The current logo is retained unchanged. No sample prices, wallets, candles or
 rewards are used to fill unavailable states.
+
+October 31 polish: preserved the existing chart, logo and data providers. The
+[21st Market Chart](https://mcp.21st.dev/%40arihantcodes_1f7b8c4d/components/market-chart)
+(Apache-2.0) informed compact chart controls; no source was copied. The
+[React Bits component catalog](https://www.reactbits.dev/get-started/index)
+was reviewed for restrained motion; no component was installed or copied.
+The mechanic now follows the reward ledger, and unconfigured data is labeled
+unavailable. Epoch identifiers are not presented as completed-epoch counts.

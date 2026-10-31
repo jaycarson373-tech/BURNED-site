@@ -9,6 +9,6 @@ for(const m of html.matchAll(/href="#([^"]+)"/g))if(!html.includes(`id="${m[1]}"
 for(const m of html.matchAll(/(?:src|href)="(\/[^"?]+)"/g))if(!(await stat(join('public',m[1].slice(1)))).size)throw new Error('Missing asset '+m[1]);
 await rm('dist',{recursive:true,force:true});await mkdir('dist',{recursive:true});
 for(const name of await readdir('public')){if(/burned|pons|ethers|topblast-stonk-banner|^burn-map|^app\.js$|^style\.css$|^topblast\.css$|qa\.html$/i.test(name))continue;await cp(join('public',name),join('dist',name),{recursive:true});}
-if(config.siteUrl||process.env.VERCEL_URL){const url=new URL(config.siteUrl||'https://'+process.env.VERCEL_URL).origin;html=html.replace('</head>',`<link rel="canonical" href="${url}/"><meta property="og:url" content="${url}/"><meta property="og:image" content="${url}/topblast-logo.png"><meta name="twitter:image" content="${url}/topblast-logo.png"></head>`);}
+{const url=new URL(config.siteUrl||'https://topblast.xyz').origin;html=html.replace('</head>',`<link rel="canonical" href="${url}/"><meta property="og:url" content="${url}/"><meta property="og:image" content="${url}/topblast-logo.png"><meta name="twitter:image" content="${url}/topblast-logo.png"></head>`);}
 await writeFile('dist/index.html',html);await writeFile('dist/runtime-config.js','window.__BLAST_PUBLIC_CONFIG__ = Object.freeze('+JSON.stringify(config)+');\n');
 console.log('Topblast build complete: isolated TOPBLAST / PUMP configuration, assets and links validated.');
