@@ -11,6 +11,11 @@ window.TopBlastIndex = Object.freeze({
     const due = Date.parse(status?.next_epoch_at || '');
     return Number.isFinite(due) ? Math.max(0, Math.ceil((due - now) / 1000)) : null;
   },
+  scheduledEpochRemainingSeconds(now = Date.now()) {
+    if (!Number.isSafeInteger(now) || now < 0) return null;
+    const interval = 900000;
+    return Math.ceil((((Math.floor(now / interval) + 1) * interval) - now) / 1000);
+  },
   crossing(previous, current) {
     const before = previous?.position_status;
     const after = current?.position_status;
