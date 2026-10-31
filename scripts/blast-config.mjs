@@ -1,14 +1,14 @@
 import {validatePublicSupabaseKey} from './public-key.mjs';
-export const WSOL_MINT='So11111111111111111111111111111111111111112';
+export const PUMP_MINT='pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn';
 const address=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const oldMints=new Set(['ApS8Sb3oXpFV5zcok9ii83PhCo2DSUV3N5UMzcYcWhHs','4LYhX3kXcKr9rTHCN4c65Hfye2aTukri3JtBbwZhUQv9','FsiDU4zcDKvuZRk3Ft4RHnRczKh4TdSi5GpdynkCuCTS','BH52uMovQJkSTxgXPW8RtrwKRxbN2PnfGfWyvgPqXbvA']);
 export function blastPublicConfig(env={}){
  const read=k=>String(env[k]??'').trim();
- const mint=read('PUBLIC_BLAST_MINT'),rewardMint=read('PUBLIC_BLAST_REWARD_MINT')||WSOL_MINT;
+ const mint=read('PUBLIC_BLAST_MINT'),rewardMint=read('PUBLIC_BLAST_REWARD_MINT')||PUMP_MINT;
  const indexVerified=read('BLAST_INDEX_VERIFIED')==='true',marketVerified=indexVerified||read('BLAST_MARKET_VERIFIED')==='true';
  const projectId=read('BLAST_PROJECT_ID')||'topblast-pump-v1';
  if(!/^topblast-pump-[a-z0-9-]{1,40}$/.test(projectId))throw new Error('Use a separate Topblast Pump project');
- if(rewardMint!==WSOL_MINT)throw new Error('Pump rewards must use the wrapped SOL mint');
+ if(rewardMint!==PUMP_MINT)throw new Error('Topblast requires the verified PUMP reward mint');
  if(mint&&(!address.test(mint)||oldMints.has(mint)||mint===rewardMint))throw new Error('A new verified BLAST mint is required');
  if(marketVerified&&!mint)throw new Error('Verify the BLAST mint before enabling the market');
  const supabaseUrl=read('PUBLIC_BLAST_SUPABASE_URL'),supabaseKey=read('PUBLIC_BLAST_SUPABASE_KEY');
@@ -18,5 +18,5 @@ export function blastPublicConfig(env={}){
  const xUrl=read('PUBLIC_BLAST_X_URL'),siteUrl=read('PUBLIC_BLAST_SITE_URL');
  if(xUrl&&!/^https:\/\/(?:www\.)?x\.com\/[A-Za-z0-9_]{1,15}\/?$/.test(xUrl))throw new Error('Invalid X URL');
  if(siteUrl){const u=new URL(siteUrl);if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash)throw new Error('Invalid site URL');}
- return {name:'Topblast',ticker:'TOPBLAST',quoteSymbol:'SOL',quoteDecimals:9,venue:'pumpfun',projectId,topblastMint:marketVerified?mint:'',rewardMint:marketVerified?rewardMint:'',indexVerified,marketVerified,rewardsActive:indexVerified&&read('BLAST_REWARDS_ACTIVE')==='true',reviewedEpoch:null,supabaseUrl:indexVerified?supabaseUrl:'',supabaseKey:indexVerified?supabaseKey:'',xUrl,siteUrl,dexscreenerUrl:marketVerified?`https://dexscreener.com/solana/${mint}`:'',buyUrl:marketVerified?`https://jup.ag/swap/SOL-${mint}`:''};
+ return {name:'Topblast',ticker:'TOPBLAST',quoteSymbol:'PUMP',quoteDecimals:6,venue:'pumpfun',projectId,topblastMint:marketVerified?mint:'',rewardMint:marketVerified?rewardMint:'',indexVerified,marketVerified,rewardsActive:indexVerified&&read('BLAST_REWARDS_ACTIVE')==='true',reviewedEpoch:null,supabaseUrl:indexVerified?supabaseUrl:'',supabaseKey:indexVerified?supabaseKey:'',xUrl,siteUrl,dexscreenerUrl:marketVerified?`https://dexscreener.com/solana/${mint}`:'',buyUrl:marketVerified?`https://jup.ag/swap/${rewardMint}-${mint}`:''};
 }

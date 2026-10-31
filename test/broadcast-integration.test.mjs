@@ -1,6 +1,6 @@
 import test from'node:test';import assert from'node:assert/strict';import {chartDOM} from'./helpers/chart-dom.mjs';
 const wallet='So11111111111111111111111111111111111111112',sig='2'.repeat(88),mint='3'.repeat(44),quote='So11111111111111111111111111111111111111112';
-const config={topblastMint:mint,rewardMint:quote,projectId:'topblast-pump-v1',supabaseUrl:'https://test.invalid',supabaseKey:'sb_publishable_test_value',indexVerified:true,marketVerified:true,rewardsActive:false,buyUrl:'https://pump.fun/coin/'+mint};
+const config={quoteSymbol:'SOL',topblastMint:mint,rewardMint:quote,projectId:'topblast-pump-v1',supabaseUrl:'https://test.invalid',supabaseKey:'sb_publishable_test_value',indexVerified:true,marketVerified:true,rewardsActive:false,buyUrl:'https://pump.fun/coin/'+mint};
 const now=Math.floor(Date.now()/1000),stamp=new Date(now*1000).toISOString();
 const status={project_id:config.projectId,burned_mint:mint,ember_mint:quote,current_epoch:Math.floor(now/900),current_price_raw:'1000000000000000000000',burned_decimals:6,ember_decimals:9,current_price_time:stamp,indexed_through_time:stamp,updated_at:stamp,mode:'plan',total_airdropped_ember_raw:'0',market_cap_usd:'120000',reward_pool_raw:'5000000000'};
 const account={wallet,tracked_burned_raw:'1000000',entry_price_raw:'2000000000000000000000',total_airdropped_ember_raw:'0',position_status:'excluded',entry_time:stamp,reward_eligible:false,exclusion_reason:'Sold or sent during this epoch',updated_at:stamp};
