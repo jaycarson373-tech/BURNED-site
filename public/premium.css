@@ -58,6 +58,13 @@ main{width:min(1400px,calc(100% - 48px));margin:0 auto}
 .hero-copy>p:not(.kicker){max-width:620px;margin:25px 0 0;color:var(--muted);font-size:18px;line-height:1.6}
 .hero-actions{display:flex;gap:10px;margin-top:31px}
 .hero-actions button{min-height:44px;padding:0 18px;border:1px solid var(--border-strong);color:var(--ink)}
+.hero-copy .intended-pair{margin-top:16px;color:var(--faint);font:10px var(--mono);letter-spacing:.08em}
+.hero-actions .primary-wallet-action{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:800}
+.hero-actions .secondary-action{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border:1px solid var(--border-strong);border-radius:8px;color:var(--ink);font-size:12px;font-weight:700}
+.hero-signal-prompt{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding-bottom:30px}
+.hero-signal-prompt h2{margin:20px 0 6px;font-size:clamp(28px,3vw,42px);letter-spacing:-.05em;line-height:1}
+.hero-signal-prompt p{max-width:340px;color:var(--muted)}
+.hero-signal-prompt a{margin-top:12px;font-size:11px;font-weight:700}
 .hero-signal{position:relative;min-height:260px;border-left:1px solid var(--border);padding:28px 0 0 32px;overflow:hidden}
 .hero-signal svg{width:100%;height:190px;overflow:visible}
 .signal-grid{stroke:#29352c;stroke-width:1;fill:none}.signal-line{stroke:var(--accent);stroke-width:3;fill:none;filter:drop-shadow(0 0 8px rgba(180,243,88,.2))}.signal-entry{stroke:#ff6f61;stroke-width:1;stroke-dasharray:6 5;fill:none}.hero-signal circle{fill:var(--accent)}
@@ -136,5 +143,6 @@ dialog{width:min(560px,calc(100% - 28px));max-height:80vh;overflow:auto;backgrou
 @media(max-width:390px){
   .brand strong{display:none}#market-status{display:none}.hero h1{font-size:47px}.hero-actions{display:grid}.metric-strip strong{font-size:17px}.plot-wrap{height:280px}.chart-toolbar button{padding-inline:7px}.blast-intro h2{font-size:38px}.reward-totals strong{font-size:14px}
 }
+@media(max-width:760px){#hero-wallet-action{order:0}.hero-actions .secondary-action{order:1}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
